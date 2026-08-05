@@ -127,7 +127,11 @@
   /* ★v2 : 후기 */
   .rv{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-bottom:10px}
   .rv .rvh{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:7px}
-  .rv .src{background:var(--purpleBg);color:#4B3690;border-radius:7px;padding:4px 10px;font-size:12.5px;font-weight:800}
+  .rv .src{border-radius:7px;padding:4px 10px;font-size:12.5px;font-weight:900}
+  .rv .src.sg{background:#EDE9FE;color:#5B21B6}
+  .rv .src.nv{background:#E3F5E6;color:#15803D}
+  .rv .src.kk{background:#FEF6D9;color:#8A6A12}
+  .rv .src.dr{background:var(--tealBg);color:#0F766E}
   .rv .dt{background:var(--navyBg);color:var(--muted);border-radius:7px;padding:4px 10px;font-size:12.5px;font-weight:700}
   .rv .stars{color:#E3B34A;font-size:14px;letter-spacing:2px}
   .rv .tx{font-size:14.5px;line-height:1.65;color:#33415A}
@@ -173,7 +177,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v2 · 0803-1240</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v3 · 0805-0930</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -495,6 +499,16 @@ function loadReview(){
 }
 function setRvFilter(f){ RVFILTER=f; renderReview(); }
 
+var SRCMAP={
+  "숨고":{c:"sg",t:"숨고 인증 후기"}, "soomgo":{c:"sg",t:"숨고 인증 후기"},
+  "네이버":{c:"nv",t:"네이버 후기"},  "naver":{c:"nv",t:"네이버 후기"},
+  "카카오":{c:"kk",t:"카카오 후기"},  "당근":{c:"kk",t:"당근 후기"},
+  "해피데이":{c:"dr",t:"해피데이 후기"}, "직접":{c:"dr",t:"해피데이 후기"}, "문자":{c:"dr",t:"해피데이 후기"}
+};
+function srcInfo(s){ s=String(s||"").trim(); return SRCMAP[s]||SRCMAP[s.toLowerCase()]||{c:"dr",t:s+" 후기"}; }
+function srcClass(s){ return srcInfo(s).c; }
+function srcLabel(s){ return esc(srcInfo(s).t); }
+
 function renderReview(){
   var shown=REVIEW.filter(function(v){return v.open!=='N';}).length;
   var hidden=REVIEW.length-shown;
@@ -530,7 +544,7 @@ function renderReview(){
     h+='<div class="rv'+(off?' off':'')+'" id="rv'+v._row+'"><div class="rvh">';
     h+= off ? '<span class="offbadge">🚫 손님에게 안 보임</span>'
             : '<span class="onbadge">👀 손님에게 보임</span>';
-    if(v.source) h+='<span class="src">✔ '+esc(v.source)+'</span>';
+    if(v.source) h+='<span class="src '+srcClass(v.source)+'">✔ '+srcLabel(v.source)+'</span>';
     if(v.moveDate) h+='<span class="dt">🚚 이사 '+esc(fmtDate(v.moveDate))+'</span>';
     if(v.date) h+='<span class="dt">✍ 후기 '+esc(fmtDate(v.date))+'</span>';
     h+='</div>';
