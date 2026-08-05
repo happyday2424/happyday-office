@@ -125,6 +125,18 @@
     padding:6px 13px;font-size:13.5px;font-weight:800;white-space:nowrap}
 
   /* ★v2 : 후기 */
+  .rvstat{background:linear-gradient(135deg,#243B6B,#1B2A4A);color:#fff;border-radius:14px;
+    padding:16px 16px 14px;margin-bottom:12px;display:none}
+  .rvstat .big{display:flex;align-items:baseline;gap:10px;margin-bottom:11px}
+  .rvstat .stars{color:#F5D98B;font-size:23px;letter-spacing:2px}
+  .rvstat .avg{font-size:30px;font-weight:900;letter-spacing:-1px}
+  .rvstat .avg small{font-size:14px;font-weight:700;opacity:.7;margin-left:4px}
+  .rvstat .row{display:flex;flex-wrap:wrap;gap:7px}
+  .rvstat .cell{background:rgba(255,255,255,.12);border-radius:999px;padding:7px 13px;
+    font-size:13px;font-weight:700}
+  .rvstat .cell b{color:#F5D98B;margin-left:4px}
+  .rvstat .cell.warn{background:rgba(226,96,58,.35)}
+  .rvstat .cell.warn b{color:#FFD9CC}
   .rv{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-bottom:10px}
   .rv .rvh{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:7px}
   .rv .src{border-radius:7px;padding:4px 10px;font-size:12.5px;font-weight:900}
@@ -191,7 +203,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v7 · 0805-2210</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v8 · 0805-2340</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -232,6 +244,7 @@
     <div id="pane-review" class="hide">
       <div class="hint">후기는 <b>기본으로 손님에게 보입니다.</b><br>
         내리고 싶은 후기는 <b>[숨기기]</b>를 누르세요. 바로 반영됩니다. 구글시트를 열 필요 없습니다.</div>
+      <div class="rvstat" id="rvStat"></div>
       <div class="subtabs" id="rvTabs"></div>
       <div class="subtabs" id="rvMode">
         <button class="st on" onclick="setRvMode('pub')">공개 후기</button>
@@ -509,7 +522,7 @@ function loadReview(){
       REVIEW=res.rows||[]; REVIEW_LOADED=true;
       var shown=REVIEW.filter(function(v){return v.open!=='N';}).length;
       var cb=document.getElementById('cnt-review'); if(cb) cb.textContent=shown;
-      renderReview();
+      renderReview(); renderRvStat();
     })
     .catch(function(e){
       document.getElementById('reviewList').innerHTML='<div class="empty"><div class="big">연결 오류</div>'+e+'</div>';
@@ -621,13 +634,51 @@ function toggleReview(row, toOpen){
       REVIEW.forEach(function(v){ if(v._row===row) v.open=open; });
       var cb=document.getElementById('cnt-review');
       if(cb) cb.textContent=REVIEW.filter(function(v){return v.open!=='N';}).length;
-      renderReview();
+      renderReview(); renderRvStat();
     })
     .catch(function(e){ if(b){b.disabled=false;b.textContent=old;} alert('연결 오류 : '+e); });
 }
 
 /* ═══════════ ★v37 새 평가 (후기링크가 쌓은 것) ═══════════ */
 var RATING=[], RATING_LOADED=false, RVMODE='pub';
+
+function renderRvStat(){
+  var box=document.getElementById('rvStat'); if(!box)return;
+
+  /* 평가(후기링크로 들어온 것) 기준 — 점수만 준 고객까지 전부 */
+  var n=0, sum=0, rec=0, low=0, wait=0, pub=0;
+  RATING.forEach(function(v){
+    var a=Number(v.avg)||0;
+    if(a>=1&&a<=5){ n++; sum+=a; }
+    if(String(v.recommend||'').toUpperCase()==='Y') rec++;
+    var hasLow=(v.scores||[]).some(function(x){ return Number(x.v)<=3; });
+    if(hasLow||(a&&a<=3)) low++;
+    if(v.published) pub++; else wait++;
+  });
+
+  /* 공개 중인 후기(숨고 등 포함) */
+  var shown=REVIEW.filter(function(v){return v.open!=='N';}).length;
+  var hidden=REVIEW.length-shown;
+
+  if(!n && !REVIEW.length){ box.style.display='none'; return; }
+
+  var avg=n?Math.round((sum/n)*10)/10:0;
+  var full=Math.round(avg), s='';
+  for(var i=0;i<5;i++) s+=(i<full?'★':'☆');
+
+  var h='<div class="big"><span class="stars">'+s+'</span>'
+      +'<span class="avg">'+(avg?avg.toFixed(1):'-')+'<small>내 평균 점수</small></span></div>';
+  h+='<div class="row">';
+  h+='<span class="cell">총 평가<b>'+n+'건</b></span>';
+  h+='<span class="cell">추천<b>'+rec+'명</b></span>';
+  h+='<span class="cell'+(low?' warn':'')+'">3점 이하<b>'+low+'건</b></span>';
+  h+='<span class="cell">공개 후기<b>'+shown+'건</b></span>';
+  if(hidden) h+='<span class="cell">숨김<b>'+hidden+'건</b></span>';
+  if(wait)   h+='<span class="cell warn">공개 대기<b>'+wait+'건</b></span>';
+  h+='</div>';
+  box.innerHTML=h;
+  box.style.display='block';
+}
 
 function setRvMode(m){
   RVMODE=m;
@@ -645,6 +696,7 @@ function loadRating2(){   /* 건수만 미리 세어 둠 */
       RATING=res.rows||[]; RATING_LOADED=true;
       var wait=RATING.filter(function(v){return !v.published;}).length;
       var nc=document.getElementById('newCnt'); if(nc) nc.textContent=wait?('· '+wait):'';
+      renderRvStat();
     }).catch(function(){});
 }
 
@@ -658,7 +710,7 @@ function loadRating(){
       RATING=res.rows||[]; RATING_LOADED=true;
       var wait=RATING.filter(function(v){return !v.published;}).length;
       var nc=document.getElementById('newCnt'); if(nc) nc.textContent=wait?('· '+wait):'';
-      renderRating();
+      renderRating(); renderRvStat();
     })
     .catch(function(e){ document.getElementById('reviewList').innerHTML='<div class="empty"><div class="big">연결 오류</div>'+e+'</div>'; });
 }
@@ -718,7 +770,7 @@ function publishRating(row){
       REVIEW_LOADED=false;
       var wait=RATING.filter(function(v){return !v.published;}).length;
       var nc=document.getElementById('newCnt'); if(nc) nc.textContent=wait?('· '+wait):'';
-      renderRating();
+      renderRating(); renderRvStat();
     })
     .catch(function(e){ if(b){b.disabled=false;b.textContent='📤 손님 화면에 공개하기';} alert('연결 오류 : '+e); });
 }
