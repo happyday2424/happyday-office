@@ -134,6 +134,20 @@
   .rv .src.dr{background:var(--tealBg);color:#0F766E}
   .rv .dt{background:var(--navyBg);color:var(--muted);border-radius:7px;padding:4px 10px;font-size:12.5px;font-weight:700}
   .rv .stars{color:#E3B34A;font-size:14px;letter-spacing:2px}
+  .rv .meta{background:var(--bg);border-radius:9px;padding:10px 12px;margin-bottom:9px;
+    display:grid;gap:4px;font-size:13.5px;color:#33415A}
+  .rv .meta .mk{display:inline-block;min-width:56px;color:var(--muted);font-weight:800;margin-right:6px}
+  .rv .meta i{color:#B6C0CC;font-style:normal}
+  .rv .meta a{color:var(--blue);font-weight:800;text-decoration:none}
+  .rv .asis{color:var(--coral);font-weight:800;font-size:12.5px}
+  .rv .rtaghead{font-size:12.5px;font-weight:800;color:var(--muted);margin-top:10px}
+  .rv .scores{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
+  .rv .sc{display:flex;align-items:center;gap:7px;background:var(--tealBg);border-radius:8px;padding:7px 10px}
+  .rv .sc .sn{flex:1;min-width:0;font-size:13px;font-weight:800;color:#0F6E56}
+  .rv .sc .sv{font-size:15px;font-weight:900;color:var(--navy)}
+  .rv .rtags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+  .rv .rtags span{background:var(--navyBg);color:var(--navy);border-radius:7px;padding:5px 9px;
+    font-size:12.5px;font-weight:800}
   .rv .tx{font-size:14.5px;line-height:1.65;color:#33415A}
   .rv .who{font-size:13px;color:var(--muted);font-weight:700;margin-top:7px}
   .rv.off{background:#F3F5F8;border:1px solid #E4C7BE;border-left:6px solid var(--coral);position:relative}
@@ -177,7 +191,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v3 · 0805-0930</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v6 · 0805-2230</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -512,7 +526,9 @@ function srcLabel(s){ return esc(srcInfo(s).t); }
 function renderReview(){
   var shown=REVIEW.filter(function(v){return v.open!=='N';}).length;
   var hidden=REVIEW.length-shown;
-  document.getElementById('reviewCnt').textContent='손님에게 보이는 후기 '+shown+'건'+(hidden?' · 숨김 '+hidden+'건':'');
+  var onlyStar=REVIEW.filter(function(v){return !v.text;}).length;
+  document.getElementById('reviewCnt').textContent='손님에게 보이는 후기 '+shown+'건'
+    +(hidden?' · 숨김 '+hidden+'건':'')+(onlyStar?' · 별점만 '+onlyStar+'건':'');
 
   var t='<button class="st '+(RVFILTER==='all'?'on':'')+'" onclick="setRvFilter(\'all\')">전체 '+REVIEW.length+'</button>'
        +'<button class="st '+(RVFILTER==='on'?'on':'')+'" onclick="setRvFilter(\'on\')">보이는 중 '+shown+'</button>'
@@ -538,19 +554,50 @@ function renderReview(){
 
   var h='';
   list.forEach(function(v){
-    var n=Math.max(1,Math.min(5,Number(v.star)||5)), s='';
-    for(var i=0;i<n;i++) s+='★';
+    var raw=Number(v.star);
+    var noStar=(!raw||isNaN(raw));
+    if(raw<1)raw=1; if(raw>5)raw=5;
+    var n=Math.round(raw), s='';
+    for(var i=0;i<5;i++) s+= (i<n?'★':'☆');
+    var num=noStar?'':(Math.round(raw*10)/10).toFixed(1);
     var off=(v.open==='N');
+
     h+='<div class="rv'+(off?' off':'')+'" id="rv'+v._row+'"><div class="rvh">';
     h+= off ? '<span class="offbadge">🚫 손님에게 안 보임</span>'
             : '<span class="onbadge">👀 손님에게 보임</span>';
     if(v.source) h+='<span class="src '+srcClass(v.source)+'">✔ '+srcLabel(v.source)+'</span>';
-    if(v.moveDate) h+='<span class="dt">🚚 이사 '+esc(fmtDate(v.moveDate))+'</span>';
-    if(v.date) h+='<span class="dt">✍ 후기 '+esc(fmtDate(v.date))+'</span>';
+    h+='<span class="dt">'+v._row+'행</span>';
     h+='</div>';
-    h+='<div class="stars">'+s+'</div>';
-    h+='<div class="tx">'+esc(v.text)+'</div>';
-    h+='<div class="who">— '+esc(v.who||'고객')+(v.kind?' · '+esc(v.kind):'')+'</div>';
+
+    /* ★ 오피스는 원본 그대로 */
+    h+='<div class="meta">';
+    h+='<div><span class="mk">연락처</span>'+(v.tel?('<a href="tel:'+String(v.tel).replace(/\D/g,'')+'">'+esc(v.tel)+'</a>'):'<i>없음</i>')+'</div>';
+    h+='<div><span class="mk">이사일</span>'+(v.moveDate?esc(fmtDate(v.moveDate)):'<i>없음</i>')+'</div>';
+    h+='<div><span class="mk">후기일</span>'+(v.date?esc(fmtDate(v.date)):'<i>없음</i>')+'</div>';
+    h+='<div><span class="mk">작성자</span>'+(v.who?esc(v.who):'<i>없음</i>')
+      +((v.who&&v.whoShow&&v.who!==v.whoShow)?' <span class="asis">손님화면 : '+esc(v.whoShow)+'</span>':'')+'</div>';
+    if(v.kind) h+='<div><span class="mk">이사종류</span>'+esc(v.kind)+'</div>';
+    if(v.memo) h+='<div><span class="mk">비고</span>'+esc(v.memo)+'</div>';
+    /* ★ 시트에 있는 나머지 칸 전부 (항목별 점수 등) */
+    if(v.extra&&v.extra.length) v.extra.forEach(function(e){
+      h+='<div><span class="mk">'+esc(e.k)+'</span>'+esc(e.v)+'</div>';
+    });
+    h+='</div>';
+
+    h+='<div class="stars">'+s+(num?' <b style="color:var(--navy);font-size:15px">'+num+'</b>'
+      :' <b style="color:#B6C0CC;font-size:13px">별점없음</b>')+'</div>';
+    if(v.text) h+='<div class="tx">'+esc(v.text)+'</div>';
+    else h+='<div class="tx" style="color:#9AA6B4">(글 없이 별점만 — 손님 화면에는 카드로 안 나가고 평균에만 반영됩니다)</div>';
+    if(v.scores&&v.scores.length){
+      h+='<div class="rtaghead">항목별 점수</div><div class="scores">';
+      v.scores.forEach(function(x){
+        h+='<div class="sc"><span class="sn">'+esc(x.k)+'</span><span class="sv">'+x.v+'</span></div>';
+      });
+      h+='</div>';
+    }
+    if(v.tags&&v.tags.length) h+='<div class="rtaghead">평가항목 '+v.tags.length+'개</div>'
+      +'<div class="rtags">'+v.tags.map(function(t){return '<span>'+esc(t)+'</span>';}).join('')+'</div>';
+
     h+='<div class="acts"><button class="a '+(off?'tel':'sub')+'" style="flex:1" id="rb'+v._row+'" '
       +'onclick="toggleReview('+v._row+','+(off?1:0)+')">'+(off?'👀 보이기':'🚫 숨기기')+'</button></div>';
     h+='</div>';
