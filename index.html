@@ -191,7 +191,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v6 · 0805-2230</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v7 · 0805-2210</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -233,6 +233,10 @@
       <div class="hint">후기는 <b>기본으로 손님에게 보입니다.</b><br>
         내리고 싶은 후기는 <b>[숨기기]</b>를 누르세요. 바로 반영됩니다. 구글시트를 열 필요 없습니다.</div>
       <div class="subtabs" id="rvTabs"></div>
+      <div class="subtabs" id="rvMode">
+        <button class="st on" onclick="setRvMode('pub')">공개 후기</button>
+        <button class="st" onclick="setRvMode('new')">새 평가 도착 <span id="newCnt"></span></button>
+      </div>
       <div class="bar"><span class="cnt" id="reviewCnt">후기 탭을 누르면 불러옵니다</span>
         <button class="btn-refresh" onclick="loadReview()">↻ 새로고침</button></div>
       <div id="reviewList"></div>
@@ -337,7 +341,7 @@ document.querySelectorAll('.tab').forEach(function(t){
       document.getElementById('pane-'+k).classList.toggle('hide',k!==tab);
     });
     if(tab==='refer'){ renderReferAll(); if(!REFER_LOADED) loadRefer(); }
-    if(tab==='review' && !REVIEW_LOADED){ loadReview(); }
+    if(tab==='review'){ if(!REVIEW_LOADED) loadReview(); if(!RATING_LOADED) loadRating2(); }
   };
 });
 
@@ -620,6 +624,103 @@ function toggleReview(row, toOpen){
       renderReview();
     })
     .catch(function(e){ if(b){b.disabled=false;b.textContent=old;} alert('연결 오류 : '+e); });
+}
+
+/* ═══════════ ★v37 새 평가 (후기링크가 쌓은 것) ═══════════ */
+var RATING=[], RATING_LOADED=false, RVMODE='pub';
+
+function setRvMode(m){
+  RVMODE=m;
+  document.querySelectorAll('#rvMode .st').forEach(function(b,i){ b.classList.toggle('on', (i===0)===(m==='pub')); });
+  document.getElementById('rvTabs').style.display = (m==='pub')?'':'none';
+  if(m==='new'){ if(!RATING_LOADED) loadRating(); else renderRating(); }
+  else renderReview();
+}
+
+function loadRating2(){   /* 건수만 미리 세어 둠 */
+  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=rating')
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(!res.ok)return;
+      RATING=res.rows||[]; RATING_LOADED=true;
+      var wait=RATING.filter(function(v){return !v.published;}).length;
+      var nc=document.getElementById('newCnt'); if(nc) nc.textContent=wait?('· '+wait):'';
+    }).catch(function(){});
+}
+
+function loadRating(){
+  document.getElementById('reviewList').innerHTML='<div class="loading">새 평가를 읽는 중입니다…</div>';
+  document.getElementById('reviewCnt').textContent='불러오는 중…';
+  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=rating')
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(!res.ok){ document.getElementById('reviewList').innerHTML='<div class="empty"><div class="big">불러오지 못했습니다</div>'+(res.error||'')+'</div>'; return; }
+      RATING=res.rows||[]; RATING_LOADED=true;
+      var wait=RATING.filter(function(v){return !v.published;}).length;
+      var nc=document.getElementById('newCnt'); if(nc) nc.textContent=wait?('· '+wait):'';
+      renderRating();
+    })
+    .catch(function(e){ document.getElementById('reviewList').innerHTML='<div class="empty"><div class="big">연결 오류</div>'+e+'</div>'; });
+}
+
+function renderRating(){
+  var wait=RATING.filter(function(v){return !v.published;}).length;
+  document.getElementById('reviewCnt').textContent='새 평가 '+RATING.length+'건 · 공개 대기 '+wait+'건';
+  if(!RATING.length){
+    document.getElementById('reviewList').innerHTML='<div class="empty"><div class="big">새 평가가 없습니다</div>후기링크로 평가가 들어오면 여기에 쌓입니다.</div>';
+    return;
+  }
+  var h='';
+  RATING.forEach(function(v){
+    var avg=Number(v.avg)||0, n=Math.round(avg), s='';
+    for(var i=0;i<5;i++) s+=(i<n?'★':'☆');
+    h+='<div class="rv'+(v.published?' off':'')+'"><div class="rvh">';
+    h+= v.published ? '<span class="onbadge">✅ 이미 공개됨</span>' : '<span class="offbadge" style="background:var(--amber)">📥 공개 대기</span>';
+    if(v.source) h+='<span class="src dr">'+esc(v.source)+'</span>';
+    h+='<span class="dt">'+v._row+'행</span></div>';
+
+    h+='<div class="meta">';
+    h+='<div><span class="mk">연락처</span>'+(v.tel?('<a href="tel:'+String(v.tel).replace(/\D/g,'')+'">'+esc(v.tel)+'</a>'):'<i>없음</i>')+'</div>';
+    h+='<div><span class="mk">이사일</span>'+(v.moveDate?esc(fmtDate(v.moveDate)):'<i>없음</i>')+'</div>';
+    h+='<div><span class="mk">평가일</span>'+(v.date?esc(fmtDate(v.date)):'<i>없음</i>')+'</div>';
+    if(v.kind) h+='<div><span class="mk">이사종류</span>'+esc(v.kind)+'</div>';
+    if(v.from) h+='<div><span class="mk">출발</span>'+esc(v.from)+'</div>';
+    if(v.to) h+='<div><span class="mk">도착</span>'+esc(v.to)+(v.pyeong?' · '+esc(v.pyeong)+'평':'')+'</div>';
+    if(v.recommend) h+='<div><span class="mk">추천의향</span>'+esc(v.recommend)+'</div>';
+    if(v.code) h+='<div><span class="mk">코드</span>'+esc(v.code)+'</div>';
+    h+='</div>';
+
+    h+='<div class="stars">'+s+' <b style="color:var(--navy);font-size:15px">'+(avg?avg.toFixed(1):'-')+'</b></div>';
+    if(v.scores&&v.scores.length){
+      h+='<div class="rtaghead">항목별 점수</div><div class="scores">';
+      v.scores.forEach(function(x){ h+='<div class="sc"><span class="sn">'+esc(x.k)+'</span><span class="sv">'+x.v+'</span></div>'; });
+      h+='</div>';
+    }
+    if(v.low) h+='<div class="note" style="margin-top:9px">⚠ 아쉬운 점 : '+esc(v.low)+'</div>';
+    if(v.text) h+='<div class="tx" style="margin-top:9px">'+esc(v.text)+'</div>';
+    else h+='<div class="tx" style="margin-top:9px;color:#9AA6B4">(글 없이 점수만)</div>';
+
+    if(!v.published){
+      h+='<div class="acts"><button class="a main" style="flex:1" id="pb'+v._row+'" onclick="publishRating('+v._row+')">📤 손님 화면에 공개하기</button></div>';
+    }
+    h+='</div>';
+  });
+  document.getElementById('reviewList').innerHTML=h;
+}
+
+function publishRating(row){
+  var b=document.getElementById('pb'+row); if(b){ b.disabled=true; b.textContent='공개하는 중…'; }
+  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=ratingPub&row='+row)
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(!res.ok){ if(b){b.disabled=false;b.textContent='📤 손님 화면에 공개하기';} alert('공개하지 못했습니다 : '+(res.error||'')); return; }
+      RATING.forEach(function(v){ if(v._row===row) v.published=true; });
+      REVIEW_LOADED=false;
+      var wait=RATING.filter(function(v){return !v.published;}).length;
+      var nc=document.getElementById('newCnt'); if(nc) nc.textContent=wait?('· '+wait):'';
+      renderRating();
+    })
+    .catch(function(e){ if(b){b.disabled=false;b.textContent='📤 손님 화면에 공개하기';} alert('연결 오류 : '+e); });
 }
 
 /* ═══════════ 견적 ═══════════ */
