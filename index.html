@@ -132,6 +132,9 @@
   .rvstat .avg{font-size:30px;font-weight:900;letter-spacing:-1px}
   .rvstat .avg small{font-size:14px;font-weight:700;opacity:.7;margin-left:4px}
   .rvstat .row{display:flex;flex-wrap:wrap;gap:7px}
+  .rvstat .cell.clickable{cursor:pointer;transition:transform .1s,box-shadow .1s}
+  .rvstat .cell.clickable:active{transform:scale(.96)}
+  .rvstat .cell.picked{outline:2px solid #fff;outline-offset:1px}
   .rvstat .cell{background:rgba(255,255,255,.14);border-radius:999px;padding:8px 14px;
     font-size:13.5px;font-weight:800;color:#fff}
   .rvstat .cell b{color:#F5D98B;margin-left:5px;font-size:14.5px}
@@ -203,7 +206,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v9 · 0805-2350</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v10 · 0823-2210</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -667,17 +670,49 @@ function renderRvStat(){
   for(var i=0;i<5;i++) s+=(i<full?'★':'☆');
 
   var h='<div class="big"><span class="stars">'+s+'</span>'
-      +'<span class="avg">'+(avg?avg.toFixed(1):'-')+'<small>내 평균 점수</small></span></div>';
+      +'<span class="avg">'+(avg?avg.toFixed(1):'-')+'<small>평가 평균 점수</small></span></div>';
   h+='<div class="row">';
-  h+='<span class="cell">총 평가<b>'+n+'건</b></span>';
-  h+='<span class="cell">추천<b>'+rec+'명</b></span>';
-  h+='<span class="cell'+(low?' warn':'')+'">3점 이하<b>'+low+'건</b></span>';
+
+  /* ★v10 : 눌러서 걸러볼 수 있게. picked 는 지금 보고 있는 것 */
+  var cl=function(k){ return (RVMODE==='new'&&RVFILT===k)?' picked':''; };
+  h+='<span class="cell clickable'+cl('all')+'" onclick="rvFilt(\'all\')">총 평가<b>'+n+'건</b></span>';
+  h+='<span class="cell clickable'+cl('rec')+'" onclick="rvFilt(\'rec\')">추천<b>'+rec+'명</b></span>';
+  h+='<span class="cell clickable'+(low?' warn':'')+cl('low')+'" onclick="rvFilt(\'low\')">3점 이하<b>'+low+'건</b></span>';
   h+='<span class="cell">공개 후기<b>'+shown+'건</b></span>';
   if(hidden) h+='<span class="cell">숨김<b>'+hidden+'건</b></span>';
-  if(wait)   h+='<span class="cell warn">공개 대기<b>'+wait+'건</b></span>';
+  if(wait)   h+='<span class="cell clickable warn'+cl('wait')+'" onclick="rvFilt(\'wait\')">공개 대기<b>'+wait+'건</b></span>';
   h+='</div>';
   box.innerHTML=h;
   box.style.display='block';
+}
+
+
+/**
+ * ★v10 — 통계 딱지를 눌러 해당 평가만 보기
+ *   all  전체
+ *   rec  추천하겠다고 답한 건
+ *   low  항목 중 3점 이하가 있는 건
+ *   wait 아직 손님 화면에 안 올라간 건
+ */
+var RVFILT='all';
+
+function rvFilt(k){
+  RVFILT=k;
+  if(RVMODE!=='new'){ setRvMode('new'); return; }
+  renderRating(); renderRvStat();
+}
+
+function ratingFiltered(){
+  return RATING.filter(function(v){
+    if(RVFILT==='rec')  return String(v.recommend||'').toUpperCase()==='Y';
+    if(RVFILT==='wait') return !v.published;
+    if(RVFILT==='low'){
+      var a=Number(v.avg)||0;
+      var hasLow=(v.scores||[]).some(function(x){ return Number(x.v)<=3; });
+      return hasLow||(a&&a<=3);
+    }
+    return true;
+  });
 }
 
 function setRvMode(m){
@@ -685,7 +720,8 @@ function setRvMode(m){
   document.querySelectorAll('#rvMode .st').forEach(function(b,i){ b.classList.toggle('on', (i===0)===(m==='pub')); });
   document.getElementById('rvTabs').style.display = (m==='pub')?'':'none';
   if(m==='new'){ if(!RATING_LOADED) loadRating(); else renderRating(); }
-  else renderReview();
+  else { RVFILT='all'; renderReview(); }
+  renderRvStat();
 }
 
 function loadRating2(){   /* 건수만 미리 세어 둠 */
@@ -717,13 +753,26 @@ function loadRating(){
 
 function renderRating(){
   var wait=RATING.filter(function(v){return !v.published;}).length;
-  document.getElementById('reviewCnt').textContent='새 평가 '+RATING.length+'건 · 공개 대기 '+wait+'건';
+  var list=ratingFiltered();
+  var name={all:'전체',rec:'추천하겠다',low:'3점 이하',wait:'공개 대기'}[RVFILT]||'전체';
+
+  document.getElementById('reviewCnt').textContent=
+    (RVFILT==='all' ? ('새 평가 '+RATING.length+'건 · 공개 대기 '+wait+'건')
+                    : (name+' '+list.length+'건 · 전체 '+RATING.length+'건'));
+
   if(!RATING.length){
     document.getElementById('reviewList').innerHTML='<div class="empty"><div class="big">새 평가가 없습니다</div>후기링크로 평가가 들어오면 여기에 쌓입니다.</div>';
     return;
   }
+  if(!list.length){
+    document.getElementById('reviewList').innerHTML=
+      '<div class="empty"><div class="big">'+name+'에 해당하는 평가가 없습니다</div>'
+      +'<button class="a sub" style="margin-top:12px" onclick="rvFilt(\'all\')">전체 보기</button></div>';
+    return;
+  }
+
   var h='';
-  RATING.forEach(function(v){
+  list.forEach(function(v){
     var avg=Number(v.avg)||0, n=Math.round(avg), s='';
     for(var i=0;i<5;i++) s+=(i<n?'★':'☆');
     h+='<div class="rv'+(v.published?' off':'')+'"><div class="rvh">';
