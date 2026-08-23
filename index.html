@@ -206,7 +206,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v10 · 0823-2220</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v11 · 0823-2235</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -654,8 +654,7 @@ function renderRvStat(){
     var a=Number(v.avg)||0;
     if(a>=1&&a<=5){ n++; sum+=a; }
     if(String(v.recommend||'').toUpperCase()==='Y') rec++;
-    var hasLow=(v.scores||[]).some(function(x){ return Number(x.v)<=3; });
-    if(hasLow||(a&&a<=3)) low++;
+    if(a&&a<=3.9) low++;          /* ★ 평균이 3점대 이하인 건 */
     if(v.published) pub++; else wait++;
   });
 
@@ -677,7 +676,7 @@ function renderRvStat(){
   var cl=function(k){ return (RVMODE==='new'&&RVFILT===k)?' picked':''; };
   h+='<span class="cell clickable'+cl('all')+'" onclick="rvFilt(\'all\')">총 평가<b>'+n+'건</b></span>';
   h+='<span class="cell clickable'+cl('rec')+'" onclick="rvFilt(\'rec\')">추천<b>'+rec+'명</b></span>';
-  h+='<span class="cell clickable'+(low?' warn':'')+cl('low')+'" onclick="rvFilt(\'low\')">3점 이하<b>'+low+'건</b></span>';
+  h+='<span class="cell clickable'+(low?' warn':'')+cl('low')+'" onclick="rvFilt(\'low\')">평균 3점대<b>'+low+'건</b></span>';
   h+='<span class="cell">공개 후기<b>'+shown+'건</b></span>';
   if(hidden) h+='<span class="cell">숨김<b>'+hidden+'건</b></span>';
   if(wait)   h+='<span class="cell clickable warn'+cl('wait')+'" onclick="rvFilt(\'wait\')">공개 대기<b>'+wait+'건</b></span>';
@@ -708,8 +707,7 @@ function ratingFiltered(){
     if(RVFILT==='wait') return !v.published;
     if(RVFILT==='low'){
       var a=Number(v.avg)||0;
-      var hasLow=(v.scores||[]).some(function(x){ return Number(x.v)<=3; });
-      return hasLow||(a&&a<=3);
+      return a>0 && a<=3.9;        /* ★ 평균 3점대 이하 */
     }
     return true;
   });
@@ -754,7 +752,7 @@ function loadRating(){
 function renderRating(){
   var wait=RATING.filter(function(v){return !v.published;}).length;
   var list=ratingFiltered();
-  var name={all:'전체',rec:'추천하겠다',low:'3점 이하',wait:'공개 대기'}[RVFILT]||'전체';
+  var name={all:'전체',rec:'추천하겠다',low:'평균 3점대',wait:'공개 대기'}[RVFILT]||'전체';
 
   document.getElementById('reviewCnt').textContent=
     (RVFILT==='all' ? ('새 평가 '+RATING.length+'건 · 공개 대기 '+wait+'건')
