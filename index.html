@@ -204,6 +204,17 @@
   .mtab td{padding:9px;border-bottom:1px solid var(--line);text-align:center;color:var(--navy)}
   .mtab td.m{font-weight:800;background:#FAFBFC}
   .mtab td.g{color:var(--teal);font-weight:800}
+  /* 반응 그래프 */
+  .hgraph{display:flex;align-items:flex-end;gap:8px;height:150px;padding:14px 4px 0;
+    border-bottom:2px solid var(--line);margin:6px 0 4px}
+  .hgcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .hgcol .v{font-size:13px;font-weight:800;color:var(--navy);margin-bottom:4px}
+  .hgcol .bar{width:100%;max-width:46px;background:var(--teal);border-radius:6px 6px 0 0;min-height:3px}
+  .hgcol.zero .bar{background:var(--line)}
+  .hgcol.zero .v{color:var(--muted)}
+  .hglbl{display:flex;gap:8px;padding:8px 4px 0}
+  .hglbl div{flex:1;text-align:center;font-size:11px;color:var(--muted);
+    font-weight:700;line-height:1.35;word-break:keep-all}
   .soon .big{font-size:15px;font-weight:800;color:var(--navy);margin-bottom:6px}
   .hint{background:var(--amberBg);color:#8A5F0B;border-radius:10px;padding:12px 14px;
     font-size:13.5px;line-height:1.6;margin-bottom:12px;font-weight:700}
@@ -234,7 +245,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v11 · 0823-2235</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v12 · 0826-1855</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -501,7 +512,22 @@ function renderHit(d){
 
   h+='<div class="card"><div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px">'+
      '고객이 무엇을 궁금해했나</div>'+
-     '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">연 사람 '+open+'명 기준</div>';
+     '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">연 사람 '+open+'명 기준 · 사람 수</div>';
+
+  /* 막대그래프 — 여섯 버튼을 한눈에 견준다 */
+  var mx=0;
+  MAIN.forEach(function(x){ var r=byKey[x[0]]; if(r&&r.people>mx) mx=r.people; });
+  h+='<div class="hgraph">';
+  MAIN.forEach(function(x){
+    var r=byKey[x[0]]||{people:0};
+    var hh=mx? Math.round((r.people/mx)*110) : 0;
+    h+='<div class="hgcol'+(r.people?'':' zero')+'"><div class="v">'+(r.people||0)+'</div>'+
+       '<div class="bar" style="height:'+hh+'px"></div></div>';
+  });
+  h+='</div><div class="hglbl">';
+  MAIN.forEach(function(x){ h+='<div>'+esc(x[1])+'</div>'; });
+  h+='</div><div style="height:10px"></div>';
+
   MAIN.forEach(function(x){ h+=rowHtml(x[0],x[1]); });
   h+='</div>';
 
