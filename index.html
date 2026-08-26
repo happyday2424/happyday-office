@@ -31,26 +31,28 @@
   .tab.on{color:#fff;border-bottom-color:#7DD3FC}
   @media (max-width:560px){
     .tabs{gap:2px}
-    .tab{flex:1 1 22%;padding:9px 2px;font-size:13.5px;text-align:center}
+    /* 폭을 고정해 왼쪽부터 채운다. 마지막 한 개가 남는 폭을 먹지 않게 */
+    .tab{flex:0 0 calc(25% - 2px);padding:9px 2px;font-size:13.5px;text-align:center}
     .tab .b{margin-left:3px;font-size:10px;min-width:14px;padding:0 4px}
   }
-  @media (max-width:340px){ .tab{flex:1 1 30%;font-size:13px} }
+  @media (max-width:340px){ .tab{flex:0 0 calc(33.333% - 2px);font-size:13px} }
   .tab .b{display:inline-block;min-width:17px;padding:0 5px;margin-left:5px;
     background:rgba(255,255,255,.2);border-radius:9px;font-size:11px;line-height:17px;text-align:center}
   .tab.on .b{background:#7DD3FC;color:var(--navy)}
 
   .wrap{max-width:640px;margin:0 auto;padding:14px 12px 0}
 
-  .stats{background:linear-gradient(135deg,#243B6B,#1B2A4A);color:#fff;border-radius:14px;
+  /* 통계 상자 — 상단바(네이비)와 붙어 보이지 않게 흰 카드로 */
+  .stats{background:#fff;color:var(--navy);border:1px solid var(--line);border-radius:14px;
     padding:16px 16px 14px;margin-bottom:12px}
   .stats .row1{display:flex;gap:8px;margin-bottom:12px}
-  .stats .pill{flex:1;background:rgba(255,255,255,.1);border-radius:11px;padding:11px 8px;text-align:center}
-  .stats .pill .n{font-size:22px;font-weight:900;letter-spacing:-.5px}
-  .stats .pill .l{font-size:12px;opacity:.8;margin-top:3px;font-weight:700}
-  .stats .ch-title{font-size:12px;opacity:.75;font-weight:800;margin-bottom:7px}
+  .stats .pill{flex:1;background:var(--navyBg);border-radius:11px;padding:11px 8px;text-align:center}
+  .stats .pill .n{font-size:22px;font-weight:900;letter-spacing:-.5px;color:var(--navy)}
+  .stats .pill .l{font-size:12px;color:var(--muted);margin-top:3px;font-weight:700}
+  .stats .ch-title{font-size:12px;color:var(--muted);font-weight:800;margin-bottom:7px}
   .stats .chs{display:flex;flex-wrap:wrap;gap:6px}
-  .stats .ch{background:rgba(255,255,255,.12);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700}
-  .stats .ch b{color:#F5D98B;margin-left:3px}
+  .stats .ch{background:var(--navyBg);color:var(--navy);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700}
+  .stats .ch b{color:var(--teal);margin-left:3px}
   .searchbar{position:relative;margin-bottom:10px}
   .searchbar input{width:100%;box-sizing:border-box;font-size:16px;padding:13px 40px 13px 14px;
     border-radius:11px;border:1.5px solid var(--line);outline:none;font-family:inherit;background:#fff}
@@ -61,14 +63,14 @@
   .subtabs{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
   .st{border:1px solid var(--line);background:#fff;color:var(--muted);
     border-radius:999px;padding:8px 15px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
-  .st.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .st.on{background:var(--teal);color:#fff;border-color:var(--teal)}
   /* ★v2 : 2단 상세 칩 (소개자·부동산 등) */
   .subtabs2{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;
     background:var(--navyBg);border-radius:11px;padding:10px 11px}
   .subtabs2 .lbl2{width:100%;font-size:12.5px;font-weight:800;color:var(--muted);margin-bottom:2px}
   .st2{border:1px solid #C9D3E4;background:#fff;color:var(--navy);
     border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}
-  .st2.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+  .st2.on{background:var(--teal);color:#fff;border-color:var(--teal)}
 
   .bar{display:flex;align-items:center;gap:8px;margin-bottom:12px}
   .bar .cnt{font-size:14px;color:var(--muted);font-weight:700}
@@ -133,21 +135,22 @@
     padding:6px 13px;font-size:13.5px;font-weight:800;white-space:nowrap}
 
   /* ★v2 : 후기 */
-  .rvstat{background:linear-gradient(135deg,#243B6B,#1B2A4A);color:#fff;border-radius:14px;
+  /* 통계 상자 — 네 탭 모두 같은 모양(흰 카드). 상단바와 붙어 보이지 않게 */
+  .rvstat{background:#fff;color:var(--navy);border:1px solid var(--line);border-radius:14px;
     padding:16px 16px 14px;margin-bottom:12px;display:none}
   .rvstat .big{display:flex;align-items:baseline;gap:10px;margin-bottom:11px}
-  .rvstat .stars{color:#F5D98B;font-size:23px;letter-spacing:2px}
+  .rvstat .stars{color:#E3B34A;font-size:23px;letter-spacing:2px}
   .rvstat .avg{font-size:30px;font-weight:900;letter-spacing:-1px}
-  .rvstat .avg small{font-size:14px;font-weight:700;opacity:.7;margin-left:4px}
+  .rvstat .avg small{font-size:14px;font-weight:700;color:var(--muted);margin-left:4px}
   .rvstat .row{display:flex;flex-wrap:wrap;gap:7px}
   .rvstat .cell.clickable{cursor:pointer;transition:transform .1s,box-shadow .1s}
   .rvstat .cell.clickable:active{transform:scale(.96)}
-  .rvstat .cell.picked{outline:2px solid #fff;outline-offset:1px}
-  .rvstat .cell{background:rgba(255,255,255,.14);border-radius:999px;padding:8px 14px;
-    font-size:13.5px;font-weight:800;color:#fff}
-  .rvstat .cell b{color:#F5D98B;margin-left:5px;font-size:14.5px}
-  .rvstat .cell.warn{background:#FFE9E2;color:#8C2F10}
-  .rvstat .cell.warn b{color:#C63B12;font-size:15px}
+  .rvstat .cell.picked{outline:2px solid var(--teal);outline-offset:1px}
+  .rvstat .cell{background:var(--navyBg);border-radius:999px;padding:8px 14px;
+    font-size:13.5px;font-weight:800;color:var(--navy)}
+  .rvstat .cell b{color:var(--teal);margin-left:5px;font-size:14.5px}
+  .rvstat .cell.warn{background:var(--coralBg);color:var(--coral)}
+  .rvstat .cell.warn b{color:var(--coral);font-size:15px}
   .rv{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-bottom:10px}
   .rv .rvh{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:7px}
   .rv .src{border-radius:7px;padding:4px 10px;font-size:12.5px;font-weight:900}
@@ -270,7 +273,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v15 · 0826-1915</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v16 · 0826-1945</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -516,9 +519,9 @@ function renderHit(d){
   }
 
   var h='';
-  h+='<div class="stats"><div style="font-size:13px;opacity:.8">견적링크를 연 사람</div>'+
-     '<div style="font-size:34px;font-weight:800;letter-spacing:-1.5px;margin-top:3px">'+open+
-     '<span style="font-size:16px;font-weight:700;margin-left:3px">명</span></div></div>';
+  h+='<div class="stats"><div style="font-size:12px;color:var(--muted);font-weight:800">견적링크를 연 사람</div>'+
+     '<div style="font-size:34px;font-weight:800;letter-spacing:-1.5px;margin-top:4px;color:var(--navy)">'+open+
+     '<span style="font-size:16px;font-weight:700;margin-left:3px;color:var(--muted)">명</span></div></div>';
 
   /* ★ 어디를 눌렀나 — 버튼 여섯 개는 0이어도 항상 보여준다 */
   var MAIN=[['form','견적 신청하기'],['free','왜 청소가 공짜지'],['data','7 · 5'],
