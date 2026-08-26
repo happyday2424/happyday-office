@@ -442,17 +442,17 @@ function renderMonth(rows){
       '앱스크립트에서 월별반응_갱신 을 한 번 실행하시면 이번 달부터 쌓입니다.</div>';
     return;
   }
-  var cols=['홈 열림','견적 신청하기','견적 전송 누름','왜 청소가 공짜지','7과 5','고객 후기','회사 소개','지인에게'];
+  var cols=['홈 열림','견적 신청하기','견적 전송 누름','왜 청소가 공짜지','7 · 5','고객 후기','회사 소개','지인에게'];
   var h='<div class="card" style="overflow-x:auto">'+
     '<div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px">달마다 몇 명이 눌렀나</div>'+
     '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">사람 수 기준 · 최신 달이 위</div>'+
     '<table class="mtab"><tr><th>달</th>';
   cols.forEach(function(c){ h+='<th>'+esc(c)+'</th>'; });
-  h+='<th>7과5 본<br>전환율</th><th>안 본<br>전환율</th></tr>';
+  h+='<th>7·5 본<br>전환율</th><th>안 본<br>전환율</th></tr>';
   rows.forEach(function(r){
     h+='<tr><td class="m">'+esc(String(r['달']||''))+'</td>';
     cols.forEach(function(c){ h+='<td>'+(r[c]===''||r[c]==null?'–':r[c])+'</td>'; });
-    var a=r['7과5 본 사람 전환율(%)'], b=r['안 본 사람 전환율(%)'];
+    var a=r['7·5 본 사람 전환율(%)'], b=r['안 본 사람 전환율(%)'];
     h+='<td class="g">'+(a===''||a==null?'–':a+'%')+'</td>';
     h+='<td>'+(b===''||b==null?'–':b+'%')+'</td></tr>';
   });
@@ -482,11 +482,43 @@ function renderHit(d){
      '<div style="font-size:34px;font-weight:800;letter-spacing:-1.5px;margin-top:3px">'+open+
      '<span style="font-size:16px;font-weight:700;margin-left:3px">명</span></div></div>';
 
-  /* ★ 7과 5를 본 사람 vs 안 본 사람 */
+  /* ★ 어디를 눌렀나 — 버튼 여섯 개는 0이어도 항상 보여준다 */
+  var MAIN=[['form','견적 신청하기'],['free','왜 청소가 공짜지'],['data','7 · 5'],
+            ['company','회사 소개'],['review','고객 후기'],['refer','지인에게']];
+  var SUB =[['견적전송시작','견적 전송 누름'],['전화_상단','전화 (상단바)'],['전화_하단','전화 (하단바)']];
+  var byKey={};
+  (d.rows||[]).forEach(function(r){ byKey[r.key]=r; });
+
+  function rowHtml(k,name){
+    var r=byKey[k]||{people:0,hits:0,rate:0};
+    var w=Math.min(100, r.rate||0);
+    var dim=(r.people?'':' style="opacity:.45"');
+    return '<div class="hitrow"'+dim+'><div class="nm"><b>'+esc(name)+'</b>'+
+           '<span>'+(r.people||0)+'명 · '+(r.hits||0)+'번</span>'+
+           '<div class="hitbar"><i style="width:'+w+'%"></i></div></div>'+
+           '<div class="pc">'+(r.rate||0)+'<em>%</em></div></div>';
+  }
+
+  h+='<div class="card"><div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px">'+
+     '고객이 무엇을 궁금해했나</div>'+
+     '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">연 사람 '+open+'명 기준</div>';
+  MAIN.forEach(function(x){ h+=rowHtml(x[0],x[1]); });
+  h+='</div>';
+
+  h+='<div class="card"><div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:8px">'+
+     '그 밖에</div>';
+  SUB.forEach(function(x){ h+=rowHtml(x[0],x[1]); });
+  h+='</div>';
+
+  /* 7 · 5 카드가 값을 하는지 — 표본이 쌓여야 뜻이 있으므로 아래에 둔다 */
   var f=d.funnel||{};
-  if((f.sawPeople||0)+(f.noPeople||0)>0){
-    h+='<div class="card"><div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:10px">'+
-       '「7과 5」를 본 사람이 견적을 더 넣었나</div><div class="hitab">';
+  var tot=(f.sawPeople||0)+(f.noPeople||0);
+  if(tot>0){
+    h+='<div class="card"><div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px">'+
+       '「7 · 5」를 본 사람이 견적을 더 넣었나</div>'+
+       '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">'+
+       (tot<30?'★ 아직 '+tot+'명뿐입니다. 몇백 명은 쌓여야 뜻이 있습니다.':'견적 전송을 누른 사람 기준')+
+       '</div><div class="hitab">';
     h+='<div class="good"><div class="t">본 사람</div><div class="v">'+(f.sawRate||0)+'<em>%</em></div>'+
        '<div class="s">'+(f.sawPeople||0)+'명 중 '+(f.sawQuote||0)+'명</div></div>';
     h+='<div><div class="t">안 본 사람</div><div class="v">'+(f.noRate||0)+'<em>%</em></div>'+
@@ -494,23 +526,6 @@ function renderHit(d){
     h+='</div></div>';
   }
 
-  /* 눌린 곳 */
-  var rows=d.rows||[];
-  h+='<div class="card"><div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px">'+
-     '어디를 눌렀나</div>'+
-     '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">연 사람 '+open+'명 기준</div>';
-  if(!rows.length){
-    h+='<div class="soon">누른 기록이 없습니다.</div>';
-  }else{
-    rows.forEach(function(r){
-      var w=Math.min(100, r.rate||0);
-      h+='<div class="hitrow"><div class="nm"><b>'+esc(r.name)+'</b>'+
-         '<span>'+r.people+'명 · '+r.hits+'번</span>'+
-         '<div class="hitbar"><i style="width:'+w+'%"></i></div></div>'+
-         '<div class="pc">'+(r.rate||0)+'<em>%</em></div></div>';
-    });
-  }
-  h+='</div>';
   el.innerHTML=h;
 }
 
