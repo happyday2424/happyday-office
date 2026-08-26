@@ -22,11 +22,19 @@
     padding:12px 14px 0}
   .top h1{margin:0 0 10px;font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
   .top h1 .r{margin-left:auto;font-size:11.5px;font-weight:600;opacity:.7}
-  .tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:0}
+  /* 탭 — 폭이 모자라면 저절로 아랫줄로. 옆으로 미는 스크롤을 쓰지 않는다.
+     메뉴가 여덟 개, 열 개로 늘어도 전부 한눈에 보인다. */
+  .tabs{display:flex;gap:4px;flex-wrap:wrap;overflow:visible;padding-bottom:0}
   .tab{border:none;background:transparent;color:rgba(255,255,255,.6);
-    padding:10px 15px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;
-    white-space:nowrap;border-bottom:3px solid transparent}
+    padding:10px 14px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;
+    white-space:nowrap;border-bottom:3px solid transparent;flex:0 0 auto}
   .tab.on{color:#fff;border-bottom-color:#7DD3FC}
+  @media (max-width:560px){
+    .tabs{gap:2px}
+    .tab{flex:1 1 22%;padding:9px 2px;font-size:13.5px;text-align:center}
+    .tab .b{margin-left:3px;font-size:10px;min-width:14px;padding:0 4px}
+  }
+  @media (max-width:340px){ .tab{flex:1 1 30%;font-size:13px} }
   .tab .b{display:inline-block;min-width:17px;padding:0 5px;margin-left:5px;
     background:rgba(255,255,255,.2);border-radius:9px;font-size:11px;line-height:17px;text-align:center}
   .tab.on .b{background:#7DD3FC;color:var(--navy)}
@@ -204,6 +212,16 @@
   .mtab td{padding:9px;border-bottom:1px solid var(--line);text-align:center;color:var(--navy)}
   .mtab td.m{font-weight:800;background:#FAFBFC}
   .mtab td.g{color:var(--teal);font-weight:800}
+  .ctab{border-collapse:collapse;width:100%;font-size:13.5px}
+  .ctab th{background:var(--navyBg);color:var(--navy);font-weight:800;font-size:12px;
+    padding:8px 6px;border-bottom:2px solid var(--line);text-align:center}
+  .ctab th:first-child{text-align:left;padding-left:10px}
+  .ctab td{padding:11px 6px;border-bottom:1px solid var(--line);text-align:center;
+    color:var(--navy);font-weight:700}
+  .ctab td.nm{text-align:left;padding-left:10px;font-weight:800}
+  .ctab td.up{color:var(--teal);font-weight:800}
+  .ctab tr.base td{background:#FAFBFC;color:var(--muted);border-top:2px solid var(--line)}
+  .ctab tr.base td.nm{color:var(--muted)}
   /* 반응 그래프 */
   .hgraph{display:flex;align-items:flex-end;gap:8px;height:150px;padding:14px 4px 0;
     border-bottom:2px solid var(--line);margin:6px 0 4px}
@@ -245,7 +263,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v12 · 0826-1855</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v14 · 0826-1905</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -459,13 +477,15 @@ function renderMonth(rows){
     '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">사람 수 기준 · 최신 달이 위</div>'+
     '<table class="mtab"><tr><th>달</th>';
   cols.forEach(function(c){ h+='<th>'+esc(c)+'</th>'; });
-  h+='<th>7·5 본<br>전환율</th><th>안 본<br>전환율</th></tr>';
+  h+='<th>청소<br>전환율</th><th>7·5<br>전환율</th><th>후기<br>전환율</th><th>안 본<br>전환율</th></tr>';
   rows.forEach(function(r){
     h+='<tr><td class="m">'+esc(String(r['달']||''))+'</td>';
     cols.forEach(function(c){ h+='<td>'+(r[c]===''||r[c]==null?'–':r[c])+'</td>'; });
-    var a=r['7·5 본 사람 전환율(%)'], b=r['안 본 사람 전환율(%)'];
-    h+='<td class="g">'+(a===''||a==null?'–':a+'%')+'</td>';
-    h+='<td>'+(b===''||b==null?'–':b+'%')+'</td></tr>';
+    ['청소 전환율(%)','7·5 전환율(%)','후기 전환율(%)','아무것도 안 본 전환율(%)'].forEach(function(k,ix){
+      var v=r[k];
+      h+='<td class="'+(ix===3?'':'g')+'">'+(v===''||v==null?'–':v+'%')+'</td>';
+    });
+    h+='</tr>';
   });
   h+='</table></div>';
   el.innerHTML=h;
@@ -536,20 +556,29 @@ function renderHit(d){
   SUB.forEach(function(x){ h+=rowHtml(x[0],x[1]); });
   h+='</div>';
 
-  /* 7 · 5 카드가 값을 하는지 — 표본이 쌓여야 뜻이 있으므로 아래에 둔다 */
-  var f=d.funnel||{};
-  var tot=(f.sawPeople||0)+(f.noPeople||0);
-  if(tot>0){
+  /* ★ 어느 화면을 본 사람이 견적을 넣었나 — 여섯을 같은 자로 잰다
+     맨 아래 '아무것도 안 본 사람' 이 기준선. 그보다 높으면 그 화면이 일한 것. */
+  var cv=d.conv||[], bs=d.base||null;
+  if(cv.length){
+    var thin=(open<30);
     h+='<div class="card"><div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px">'+
-       '「7 · 5」를 본 사람이 견적을 더 넣었나</div>'+
+       '무엇을 본 사람이 견적을 넣었나</div>'+
        '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">'+
-       (tot<30?'★ 아직 '+tot+'명뿐입니다. 몇백 명은 쌓여야 뜻이 있습니다.':'견적 전송을 누른 사람 기준')+
-       '</div><div class="hitab">';
-    h+='<div class="good"><div class="t">본 사람</div><div class="v">'+(f.sawRate||0)+'<em>%</em></div>'+
-       '<div class="s">'+(f.sawPeople||0)+'명 중 '+(f.sawQuote||0)+'명</div></div>';
-    h+='<div><div class="t">안 본 사람</div><div class="v">'+(f.noRate||0)+'<em>%</em></div>'+
-       '<div class="s">'+(f.noPeople||0)+'명 중 '+(f.noQuote||0)+'명</div></div>';
-    h+='</div></div>';
+       (thin?'★ 아직 '+open+'명뿐입니다. 몇백 명은 쌓여야 뜻이 있습니다.'
+            :'맨 아래 줄이 기준선입니다. 그보다 높으면 그 화면이 일한 것입니다.')+
+       '</div><table class="ctab"><tr><th>본 화면</th><th>본 사람</th><th>견적</th><th>전환율</th></tr>';
+    cv.slice().sort(function(x,y){ return (y.rate||0)-(x.rate||0); }).forEach(function(r){
+      var over = bs && bs.people && r.people && (r.rate||0) > (bs.rate||0);
+      h+='<tr'+(r.people?'':' style="opacity:.45"')+'>'+
+         '<td class="nm">'+esc(r.name)+'</td>'+
+         '<td>'+(r.people||0)+'</td><td>'+(r.quote||0)+'</td>'+
+         '<td class="'+(over?'up':'')+'">'+(r.rate||0)+'%</td></tr>';
+    });
+    if(bs){
+      h+='<tr class="base"><td class="nm">아무것도 안 본 사람</td>'+
+         '<td>'+(bs.people||0)+'</td><td>'+(bs.quote||0)+'</td><td>'+(bs.rate||0)+'%</td></tr>';
+    }
+    h+='</table></div>';
   }
 
   el.innerHTML=h;
