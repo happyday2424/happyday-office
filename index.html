@@ -185,11 +185,18 @@
   .loading{text-align:center;padding:50px 20px;color:var(--muted);font-size:13px}
   .soon{text-align:center;padding:44px 20px;color:var(--muted)}
   /* ═══ 반응 탭 ═══ */
-  .hitrange{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .hitrange{display:flex;justify-content:flex-start;gap:6px;flex-wrap:wrap;
+    margin:4px 0 14px;text-align:left}
   .hchip{border:1px solid var(--line);background:#fff;color:var(--muted);
-    border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;
-    cursor:pointer;font-family:inherit}
-  .hchip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+    border-radius:999px;padding:7px 13px;font-size:13px;font-weight:700;
+    cursor:pointer;font-family:inherit;flex:0 0 auto}
+  /* 고른 칸은 teal — 상단바 네이비와 색이 겹치지 않게 */
+  .hchip.on{background:var(--teal);border-color:var(--teal);color:#fff}
+  @media (max-width:480px){
+    .hitrange{gap:4px}
+    .hchip{padding:7px 9px;font-size:12.5px}
+  }
+  @media (max-width:360px){ .hchip{padding:6px 7px;font-size:12px} }
   .hitbar{height:9px;background:var(--navyBg);border-radius:5px;overflow:hidden;margin-top:6px}
   .hitbar i{display:block;height:100%;background:var(--teal);border-radius:5px}
   .hitrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
@@ -263,7 +270,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v14 · 0826-1905</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v15 · 0826-1915</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -305,9 +312,9 @@
     <div id="pane-hit" class="hide">
       <div class="hitrange" id="hitRange">
         <button class="hchip on" data-days="1">오늘</button>
-        <button class="hchip" data-days="7">최근 7일</button>
-        <button class="hchip" data-days="30">최근 30일</button>
-        <button class="hchip" data-days="90">최근 90일</button>
+        <button class="hchip" data-days="7">7일</button>
+        <button class="hchip" data-days="30">30일</button>
+        <button class="hchip" data-days="90">90일</button>
         <button class="hchip" data-days="month">월별</button>
       </div>
       <div id="hitBody"><div class="soon">불러오는 중…</div></div>
