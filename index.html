@@ -176,6 +176,34 @@
   .empty .big{font-size:15px;font-weight:800;margin-bottom:6px;color:var(--navy)}
   .loading{text-align:center;padding:50px 20px;color:var(--muted);font-size:13px}
   .soon{text-align:center;padding:44px 20px;color:var(--muted)}
+  /* ═══ 반응 탭 ═══ */
+  .hitrange{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .hchip{border:1px solid var(--line);background:#fff;color:var(--muted);
+    border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;
+    cursor:pointer;font-family:inherit}
+  .hchip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+  .hitbar{height:9px;background:var(--navyBg);border-radius:5px;overflow:hidden;margin-top:6px}
+  .hitbar i{display:block;height:100%;background:var(--teal);border-radius:5px}
+  .hitrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .hitrow:last-child{border-bottom:none}
+  .hitrow .nm{flex:1;min-width:0}
+  .hitrow .nm b{display:block;font-size:14.5px;font-weight:800;color:var(--navy)}
+  .hitrow .nm span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+  .hitrow .pc{flex:0 0 62px;text-align:right;font-size:19px;font-weight:800;color:var(--navy)}
+  .hitrow .pc em{font-style:normal;font-size:12px;color:var(--muted);margin-left:1px}
+  .hitab{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+  .hitab>div{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px;text-align:center}
+  .hitab .t{font-size:12.5px;color:var(--muted);font-weight:700}
+  .hitab .v{font-size:27px;font-weight:800;color:var(--navy);margin-top:5px;letter-spacing:-1px}
+  .hitab .s{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .hitab .good{border-color:#9FD8C6;background:var(--tealBg)}
+  .hitab .good .v{color:var(--teal)}
+  .mtab{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}
+  .mtab th{background:var(--navyBg);color:var(--navy);font-weight:800;font-size:12px;
+    padding:8px 9px;border-bottom:2px solid var(--line);text-align:center;line-height:1.3}
+  .mtab td{padding:9px;border-bottom:1px solid var(--line);text-align:center;color:var(--navy)}
+  .mtab td.m{font-weight:800;background:#FAFBFC}
+  .mtab td.g{color:var(--teal);font-weight:800}
   .soon .big{font-size:15px;font-weight:800;color:var(--navy);margin-bottom:6px}
   .hint{background:var(--amberBg);color:#8A5F0B;border-radius:10px;padding:12px 14px;
     font-size:13.5px;line-height:1.6;margin-bottom:12px;font-weight:700}
@@ -212,6 +240,7 @@
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
       <button class="tab" data-tab="callback">콜백 <span class="b">–</span></button>
       <button class="tab" data-tab="review">후기 <span class="b" id="cnt-review">–</span></button>
+      <button class="tab" data-tab="hit">반응 <span class="b" id="cnt-hit">–</span></button>
     </div>
   </div>
 
@@ -242,6 +271,18 @@
     </div>
 
     <div id="pane-callback" class="hide"><div class="soon"><div class="big">콜백 탭</div>준비 중입니다.</div></div>
+
+    <!-- ═══ 반응 탭 · 견적링크에서 손님이 어디를 눌렀나 ═══ -->
+    <div id="pane-hit" class="hide">
+      <div class="hitrange" id="hitRange">
+        <button class="hchip on" data-days="1">오늘</button>
+        <button class="hchip" data-days="7">최근 7일</button>
+        <button class="hchip" data-days="30">최근 30일</button>
+        <button class="hchip" data-days="90">최근 90일</button>
+        <button class="hchip" data-days="month">월별</button>
+      </div>
+      <div id="hitBody"><div class="soon">불러오는 중…</div></div>
+    </div>
 
     <!-- 후기 탭 -->
     <div id="pane-review" class="hide">
@@ -353,10 +394,11 @@ document.querySelectorAll('.tab').forEach(function(t){
   t.onclick=function(){
     var tab=t.dataset.tab;
     document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===t);});
-    ['quote','refer','callback','review'].forEach(function(k){
+    ['quote','refer','callback','review','hit'].forEach(function(k){
       document.getElementById('pane-'+k).classList.toggle('hide',k!==tab);
     });
     if(tab==='refer'){ renderReferAll(); if(!REFER_LOADED) loadRefer(); }
+    if(tab==='hit'){ loadHit(); }
     if(tab==='review'){ if(!REVIEW_LOADED) loadReview(); if(!RATING_LOADED) loadRating2(); }
   };
 });
@@ -366,6 +408,119 @@ document.querySelectorAll('.tab').forEach(function(t){
    소개신청 시트(REFER)는 '아직 견적 안 낸 소개'로 아래에 따로 보여줍니다. */
 var REFER=[]; var REFER_LOADED=false;
 var LGFILTER='all';   /* all | 지인소개 | 부동산소개 */
+
+/* ═══════════════════════════════════════════════════════
+   반응 탭 — 견적링크에서 손님이 어디를 눌렀나
+   ═══════════════════════════════════════════════════════ */
+var HIT_DAYS = '1';
+
+function loadHit(){
+  document.getElementById('hitBody').innerHTML='<div class="loading">견적링크 반응을 읽는 중입니다…</div>';
+  if(HIT_DAYS==='month'){
+    fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logMonth')
+      .then(function(r){return r.json();})
+      .then(function(res){ renderMonth(res && res.ok ? res.rows : null); })
+      .catch(function(){ renderMonth(null); });
+    return;
+  }
+  var url=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logStat&days='+HIT_DAYS;
+  fetch(url).then(function(r){return r.json();}).then(function(res){
+    renderHit(res && res.ok ? res : null);
+  }).catch(function(){ renderHit(null); });
+}
+
+/* 월별 — 달마다 한 줄씩, 지우지 않고 계속 쌓인다 */
+function renderMonth(rows){
+  var el=document.getElementById('hitBody');
+  if(!rows){
+    el.innerHTML='<div class="soon"><div class="big">읽지 못했습니다</div>'+
+      '앱스크립트에 접속기록 코드가 들어갔는지 확인해 주세요.</div>';
+    return;
+  }
+  if(!rows.length){
+    el.innerHTML='<div class="soon"><div class="big">아직 월별 기록이 없습니다</div>'+
+      '앱스크립트에서 월별반응_갱신 을 한 번 실행하시면 이번 달부터 쌓입니다.</div>';
+    return;
+  }
+  var cols=['홈 열림','견적 신청하기','견적 전송 누름','왜 청소가 공짜지','7과 5','고객 후기','회사 소개','지인에게'];
+  var h='<div class="card" style="overflow-x:auto">'+
+    '<div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px">달마다 몇 명이 눌렀나</div>'+
+    '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">사람 수 기준 · 최신 달이 위</div>'+
+    '<table class="mtab"><tr><th>달</th>';
+  cols.forEach(function(c){ h+='<th>'+esc(c)+'</th>'; });
+  h+='<th>7과5 본<br>전환율</th><th>안 본<br>전환율</th></tr>';
+  rows.forEach(function(r){
+    h+='<tr><td class="m">'+esc(String(r['달']||''))+'</td>';
+    cols.forEach(function(c){ h+='<td>'+(r[c]===''||r[c]==null?'–':r[c])+'</td>'; });
+    var a=r['7과5 본 사람 전환율(%)'], b=r['안 본 사람 전환율(%)'];
+    h+='<td class="g">'+(a===''||a==null?'–':a+'%')+'</td>';
+    h+='<td>'+(b===''||b==null?'–':b+'%')+'</td></tr>';
+  });
+  h+='</table></div>';
+  el.innerHTML=h;
+}
+
+function renderHit(d){
+  var el=document.getElementById('hitBody');
+  if(!d){
+    el.innerHTML='<div class="soon"><div class="big">읽지 못했습니다</div>'+
+      '견적링크가 아직 반응을 보내지 않았거나, 앱스크립트에 접속기록 코드가 안 들어갔습니다.</div>';
+    document.getElementById('cnt-hit').textContent='–';
+    return;
+  }
+  var open=d.opened||0;
+  document.getElementById('cnt-hit').textContent=open;
+
+  if(!open){
+    el.innerHTML='<div class="soon"><div class="big">아직 기록이 없습니다</div>'+
+      '이 기간에 견적링크를 연 사람이 없습니다.</div>';
+    return;
+  }
+
+  var h='';
+  h+='<div class="stats"><div style="font-size:13px;opacity:.8">견적링크를 연 사람</div>'+
+     '<div style="font-size:34px;font-weight:800;letter-spacing:-1.5px;margin-top:3px">'+open+
+     '<span style="font-size:16px;font-weight:700;margin-left:3px">명</span></div></div>';
+
+  /* ★ 7과 5를 본 사람 vs 안 본 사람 */
+  var f=d.funnel||{};
+  if((f.sawPeople||0)+(f.noPeople||0)>0){
+    h+='<div class="card"><div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:10px">'+
+       '「7과 5」를 본 사람이 견적을 더 넣었나</div><div class="hitab">';
+    h+='<div class="good"><div class="t">본 사람</div><div class="v">'+(f.sawRate||0)+'<em>%</em></div>'+
+       '<div class="s">'+(f.sawPeople||0)+'명 중 '+(f.sawQuote||0)+'명</div></div>';
+    h+='<div><div class="t">안 본 사람</div><div class="v">'+(f.noRate||0)+'<em>%</em></div>'+
+       '<div class="s">'+(f.noPeople||0)+'명 중 '+(f.noQuote||0)+'명</div></div>';
+    h+='</div></div>';
+  }
+
+  /* 눌린 곳 */
+  var rows=d.rows||[];
+  h+='<div class="card"><div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px">'+
+     '어디를 눌렀나</div>'+
+     '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">연 사람 '+open+'명 기준</div>';
+  if(!rows.length){
+    h+='<div class="soon">누른 기록이 없습니다.</div>';
+  }else{
+    rows.forEach(function(r){
+      var w=Math.min(100, r.rate||0);
+      h+='<div class="hitrow"><div class="nm"><b>'+esc(r.name)+'</b>'+
+         '<span>'+r.people+'명 · '+r.hits+'번</span>'+
+         '<div class="hitbar"><i style="width:'+w+'%"></i></div></div>'+
+         '<div class="pc">'+(r.rate||0)+'<em>%</em></div></div>';
+    });
+  }
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+document.addEventListener('click',function(e){
+  var b=e.target.closest?e.target.closest('#hitRange .hchip'):null;
+  if(!b) return;
+  HIT_DAYS=b.dataset.days;
+  document.querySelectorAll('#hitRange .hchip').forEach(function(x){x.classList.toggle('on',x===b);});
+  loadHit();
+});
 
 function loadRefer(){
   document.getElementById('referList').innerHTML='<div class="loading">소개 접수를 읽는 중입니다…</div>';
