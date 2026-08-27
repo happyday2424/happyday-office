@@ -234,7 +234,9 @@
   .stats, .rvstat{padding-left:20px}
   /* ═══ 반응 탭 ═══ */
   .hitrange{display:flex;justify-content:flex-start;gap:6px;flex-wrap:wrap;
-    margin:4px 0 14px;text-align:left}
+    margin:4px 0 8px;text-align:left}
+  /* 어느 날짜를 보고 있는지 항상 적는다 — 칩만 있으면 언제인지 모른다 */
+  .range{font-size:12.5px;color:var(--muted);font-weight:700;margin:0 2px 12px;letter-spacing:-.2px}
   .hchip{border:1px solid var(--line);background:#fff;color:var(--muted);
     border-radius:999px;padding:7px 13px;font-size:13px;font-weight:700;
     cursor:pointer;font-family:inherit;flex:0 0 auto}
@@ -265,7 +267,10 @@
   .mtab th{background:var(--navyBg);color:var(--navy);font-weight:800;font-size:12px;
     padding:8px 9px;border-bottom:2px solid var(--line);text-align:center;line-height:1.3}
   .mtab td{padding:9px;border-bottom:1px solid var(--line);text-align:center;color:var(--navy)}
-  .mtab td.m{font-weight:800;background:#FAFBFC}
+  .mtab td.m{font-weight:800;background:#FAFBFC;padding:4px}
+  .ymbtn{background:none;border:none;font-family:inherit;font-size:13px;font-weight:800;
+    color:var(--ac,var(--navy));cursor:pointer;padding:7px 9px;border-radius:8px}
+  .ymbtn:hover{background:var(--acBg,var(--navyBg))}
   .mtab td.g{color:var(--teal);font-weight:800}
   .ctab{border-collapse:collapse;width:100%;font-size:13.5px}
   .ctab th{background:var(--navyBg);color:var(--navy);font-weight:800;font-size:12px;
@@ -318,7 +323,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v17 · 0827-2250</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v18 · 0827-2330</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -333,7 +338,7 @@
     <div id="pane-quote">
       <div class="stats" id="stats"></div>
       <div class="searchbar">
-        <input id="q" type="search" placeholder="🔍 전화 뒷자리 · 이사일 · 지역 · 소개자로 찾기" oninput="onSearch()">
+        <input id="q" type="search" placeholder="전화 뒷자리 · 이사일 · 지역 · 소개자로 찾기" oninput="onSearch()">
         <button id="qClear" class="qclear hide" onclick="clearSearch()">✕</button>
       </div>
       <div class="subtabs" id="subtabs"></div>
@@ -360,11 +365,12 @@
     <div id="pane-hit" class="hide">
       <div class="hitrange" id="hitRange">
         <button class="hchip on" data-days="1">오늘</button>
-        <button class="hchip" data-days="7">7일</button>
-        <button class="hchip" data-days="30">30일</button>
-        <button class="hchip" data-days="90">90일</button>
+        <button class="hchip" data-days="7">최근 7일</button>
+        <button class="hchip" data-days="30">최근 30일</button>
+        <button class="hchip" data-days="90">최근 90일</button>
         <button class="hchip" data-days="month">월별</button>
       </div>
+      <div class="range" id="hitRangeTxt"></div>
       <div id="hitBody"><div class="soon">불러오는 중…</div></div>
     </div>
 
@@ -498,9 +504,38 @@ var LGFILTER='all';   /* all | 지인소개 | 부동산소개 */
    ═══════════════════════════════════════════════════════ */
 var HIT_DAYS = '1';
 
+var HIT_YM='';   /* 월별에서 고른 달. 비어 있으면 표 전체 */
+
+/* 날짜를 사람 말로 — 2026-08-21 → 8/21 */
+function dmd(v){
+  var m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m? (Number(m[2])+'/'+Number(m[3])) : '';
+}
+function dfull(v){
+  var m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return '';
+  var w=['일','월','화','수','목','금','토'][new Date(v).getDay()];
+  return Number(m[1])+'년 '+Number(m[2])+'월 '+Number(m[3])+'일 ('+w+')';
+}
+
+function setHitRange(txt){
+  var el=document.getElementById('hitRangeTxt');
+  if(el) el.textContent=txt||'';
+}
+
 function loadHit(){
   document.getElementById('hitBody').innerHTML='<div class="loading">견적링크 반응을 읽는 중입니다…</div>';
   if(HIT_DAYS==='month'){
+    if(HIT_YM){
+      /* 달을 골랐으면 그 달만 자세히 */
+      setHitRange('');
+      fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logOne&ym='+encodeURIComponent(HIT_YM))
+        .then(function(r){return r.json();}).then(function(res){
+          renderHit(res && res.ok ? res : null, true);
+        }).catch(function(){ renderHit(null,true); });
+      return;
+    }
+    setHitRange('달마다 한 줄씩 · 지우지 않고 계속 쌓입니다');
     fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logMonth')
       .then(function(r){return r.json();})
       .then(function(res){ renderMonth(res && res.ok ? res.rows : null); })
@@ -534,7 +569,8 @@ function renderMonth(rows){
   cols.forEach(function(c){ h+='<th>'+esc(c)+'</th>'; });
   h+='<th>청소<br>전환율</th><th>7·5<br>전환율</th><th>후기<br>전환율</th><th>안 본<br>전환율</th></tr>';
   rows.forEach(function(r){
-    h+='<tr><td class="m">'+esc(String(r['달']||''))+'</td>';
+    var ym=String(r['달']||'');
+    h+='<tr><td class="m"><button type="button" class="ymbtn" data-ym="'+esc(ym)+'">'+esc(ym)+'</button></td>';
     cols.forEach(function(c){ h+='<td>'+(r[c]===''||r[c]==null?'–':r[c])+'</td>'; });
     ['청소 전환율(%)','7·5 전환율(%)','후기 전환율(%)','아무것도 안 본 전환율(%)'].forEach(function(k,ix){
       var v=r[k];
@@ -546,16 +582,26 @@ function renderMonth(rows){
   el.innerHTML=h;
 }
 
-function renderHit(d){
+function renderHit(d,one){
   var el=document.getElementById('hitBody');
   if(!d){
+    setHitRange('');
     el.innerHTML='<div class="soon"><div class="big">읽지 못했습니다</div>'+
       '견적링크가 아직 반응을 보내지 않았거나, 앱스크립트에 접속기록 코드가 안 들어갔습니다.</div>';
     document.getElementById('cnt-hit').textContent='–';
     return;
   }
   var open=d.opened||0;
-  document.getElementById('cnt-hit').textContent=open;
+  if(!one) document.getElementById('cnt-hit').textContent=open;
+
+  /* ★ 어느 날짜를 보고 있는지 적는다 */
+  if(one){
+    setHitRange((d.ym||'')+' · '+dmd(d.from)+' ~ '+dmd(d.to));
+  }else if(HIT_DAYS==='1'){
+    setHitRange(dfull(d.to));
+  }else if(d.from&&d.to){
+    setHitRange('최근 '+HIT_DAYS+'일 · '+dmd(d.from)+' ~ '+dmd(d.to));
+  }
 
   if(!open){
     el.innerHTML='<div class="soon"><div class="big">아직 기록이 없습니다</div>'+
@@ -639,10 +685,17 @@ function renderHit(d){
   el.innerHTML=h;
 }
 
+/* 월별 표에서 달을 누르면 그 달만 자세히 */
+document.addEventListener('click',function(e){
+  var y=e.target.closest?e.target.closest('.ymbtn'):null;
+  if(!y) return;
+  HIT_YM=y.dataset.ym; loadHit();
+});
+
 document.addEventListener('click',function(e){
   var b=e.target.closest?e.target.closest('#hitRange .hchip'):null;
   if(!b) return;
-  HIT_DAYS=b.dataset.days;
+  HIT_DAYS=b.dataset.days; HIT_YM='';
   document.querySelectorAll('#hitRange .hchip').forEach(function(x){x.classList.toggle('on',x===b);});
   loadHit();
 });
@@ -721,11 +774,11 @@ function renderLedger(){
     +'</div>';
 
   if(!keys.length){
-    h+='<div class="ledger"><h3>🎁 오더를 물어다 주신 분</h3><div class="lrow"><div class="sub">아직 없습니다.</div></div></div>';
+    h+='<div class="ledger"><h3>오더를 물어다 주신 분</h3><div class="lrow"><div class="sub">아직 없습니다.</div></div></div>';
     box.innerHTML=h; return;
   }
 
-  h+='<div class="ledger"><h3>🎁 오더를 물어다 주신 분 ('+keys.length+'명)</h3>';
+  h+='<div class="ledger"><h3>오더를 물어다 주신 분 ('+keys.length+'명)</h3>';
   keys.forEach(function(k){
     var v=by[k];
     var tag = (v.main==='지인소개')
@@ -756,12 +809,12 @@ function renderRefer(){
     h+='<span class="tel">'+esc(g('연락처'))+'</span>';
     h+='<span class="when">'+esc(fmtStamp(g('접수시각')))+'</span>';
     h+='</div>';
-    h+='<div class="refline">🎁 '+(r._main==='지인소개'?'소개해주신 분':'부동산')+' : '+esc(r._detail||'(미기재)')+'</div>';
-    h+='<div class="move">🚚 이사 '+esc(fmtDate(g('이사예정일'))||'미정')+(g('이사종류')?' · '+esc(g('이사종류')):'')+'</div>';
+    h+='<div class="refline">'+(r._main==='지인소개'?'소개해주신 분':'부동산')+' : '+esc(r._detail||'(미기재)')+'</div>';
+    h+='<div class="move">이사 '+esc(fmtDate(g('이사예정일'))||'미정')+(g('이사종류')?' · '+esc(g('이사종류')):'')+'</div>';
     h+='<div class="kv"><span class="k">도착</span>'+esc(g('도착지'))+'</div>';
     h+='<div class="acts">';
-    h+='<a class="a tel" style="text-decoration:none;flex:1;text-align:center" href="tel:'+g('연락처').replace(/\D/g,'')+'">📞 고객께 전화</a>';
-    if(g('소개자연락처')) h+='<a class="a sub" style="text-decoration:none;flex:1;text-align:center" href="tel:'+g('소개자연락처').replace(/\D/g,'')+'">🎁 소개자께 전화</a>';
+    h+='<a class="a tel" style="text-decoration:none;flex:1;text-align:center" href="tel:'+g('연락처').replace(/\D/g,'')+'">고객께 전화</a>';
+    if(g('소개자연락처')) h+='<a class="a sub" style="text-decoration:none;flex:1;text-align:center" href="tel:'+g('소개자연락처').replace(/\D/g,'')+'">소개자께 전화</a>';
     h+='</div></div>';
   });
 
@@ -772,7 +825,7 @@ function renderRefer(){
     return !QUOTE.some(function(q){ return String(q['연락처']||'').replace(/\D/g,'')===tel; });
   });
   if(pend.length){
-    h+='<div class="ledger" style="margin-top:6px"><h3>📮 아직 견적을 안 내신 소개 ('+pend.length+'건)</h3>';
+    h+='<div class="ledger" style="margin-top:6px"><h3>아직 견적을 안 내신 소개 ('+pend.length+'건)</h3>';
     pend.forEach(function(r){
       var g=function(k){return r[k]?String(r[k]).trim():'';};
       h+='<div class="lrow"><div><div class="nm">'+esc(g('소개받은분_이름')||'(이름 미입력)')+' '+esc(g('소개받은분_연락처'))+'</div>'
@@ -863,9 +916,9 @@ function renderReview(){
     var off=(v.open==='N');
 
     h+='<div class="rv'+(off?' off':'')+'" id="rv'+v._row+'"><div class="rvh">';
-    h+= off ? '<span class="offbadge">🚫 손님에게 안 보임</span>'
-            : '<span class="onbadge">👀 손님에게 보임</span>';
-    if(v.source) h+='<span class="src '+srcClass(v.source)+'">✔ '+srcLabel(v.source)+'</span>';
+    h+= off ? '<span class="offbadge">손님에게 안 보임</span>'
+            : '<span class="onbadge">손님에게 보임</span>';
+    if(v.source) h+='<span class="src '+srcClass(v.source)+'">'+srcLabel(v.source)+'</span>';
     h+='<span class="dt">'+v._row+'행</span>';
     h+='</div>';
 
@@ -899,7 +952,7 @@ function renderReview(){
       +'<div class="rtags">'+v.tags.map(function(t){return '<span>'+esc(t)+'</span>';}).join('')+'</div>';
 
     h+='<div class="acts"><button class="a '+(off?'tel':'sub')+'" style="flex:1" id="rb'+v._row+'" '
-      +'onclick="toggleReview('+v._row+','+(off?1:0)+')">'+(off?'👀 보이기':'🚫 숨기기')+'</button></div>';
+      +'onclick="toggleReview('+v._row+','+(off?1:0)+')">'+(off?'보이기':'숨기기')+'</button></div>';
     h+='</div>';
   });
   document.getElementById('reviewList').innerHTML=h;
@@ -1054,7 +1107,7 @@ function renderRating(){
     var avg=Number(v.avg)||0, n=Math.round(avg), s='';
     for(var i=0;i<5;i++) s+=(i<n?'★':'☆');
     h+='<div class="rv'+(v.published?' off':'')+'"><div class="rvh">';
-    h+= v.published ? '<span class="onbadge">✅ 이미 공개됨</span>' : '<span class="offbadge" style="background:var(--amber)">📥 공개 대기</span>';
+    h+= v.published ? '<span class="onbadge">이미 공개됨</span>' : '<span class="offbadge" style="background:var(--amber)">공개 대기</span>';
     if(v.source) h+='<span class="src dr">'+esc(v.source)+'</span>';
     h+='<span class="dt">'+v._row+'행</span></div>';
 
@@ -1075,12 +1128,12 @@ function renderRating(){
       v.scores.forEach(function(x){ h+='<div class="sc"><span class="sn">'+esc(x.k)+'</span><span class="sv">'+x.v+'</span></div>'; });
       h+='</div>';
     }
-    if(v.low) h+='<div class="note" style="margin-top:9px">⚠ 아쉬운 점 : '+esc(v.low)+'</div>';
+    if(v.low) h+='<div class="note" style="margin-top:9px">아쉬운 점 : '+esc(v.low)+'</div>';
     if(v.text) h+='<div class="tx" style="margin-top:9px">'+esc(v.text)+'</div>';
     else h+='<div class="tx" style="margin-top:9px;color:#9AA6B4">(글 없이 점수만)</div>';
 
     if(!v.published){
-      h+='<div class="acts"><button class="a main" style="flex:1" id="pb'+v._row+'" onclick="publishRating('+v._row+')">📤 손님 화면에 공개하기</button></div>';
+      h+='<div class="acts"><button class="a main" style="flex:1" id="pb'+v._row+'" onclick="publishRating('+v._row+')">손님 화면에 공개하기</button></div>';
     }
     h+='</div>';
   });
@@ -1092,14 +1145,14 @@ function publishRating(row){
   fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=ratingPub&row='+row)
     .then(function(r){return r.json();})
     .then(function(res){
-      if(!res.ok){ if(b){b.disabled=false;b.textContent='📤 손님 화면에 공개하기';} alert('공개하지 못했습니다 : '+(res.error||'')); return; }
+      if(!res.ok){ if(b){b.disabled=false;b.textContent='손님 화면에 공개하기';} alert('공개하지 못했습니다 : '+(res.error||'')); return; }
       RATING.forEach(function(v){ if(v._row===row) v.published=true; });
       REVIEW_LOADED=false;
       var wait=RATING.filter(function(v){return !v.published;}).length;
       var nc=document.getElementById('newCnt'); if(nc) nc.textContent=wait?('· '+wait):'';
       renderRating(); renderRvStat();
     })
-    .catch(function(e){ if(b){b.disabled=false;b.textContent='📤 손님 화면에 공개하기';} alert('연결 오류 : '+e); });
+    .catch(function(e){ if(b){b.disabled=false;b.textContent='손님 화면에 공개하기';} alert('연결 오류 : '+e); });
 }
 
 /* ═══════════ 견적 ═══════════ */
@@ -1135,21 +1188,24 @@ function loadQuote(){
 function renderStats(){
   var now=new Date();
   var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  var day=now.getDay(); var mon=new Date(today); mon.setDate(today.getDate()-((day+6)%7));
+  /* 실적은 달력 단위로 센다 — 「최근 30일」로 세면 지난달이 섞여 정산이 안 된다 */
   var mfirst=new Date(now.getFullYear(),now.getMonth(),1);
-  var cToday=0,cWeek=0,cMonth=0,chMonth={};
+  var pfirst=new Date(now.getFullYear(),now.getMonth()-1,1);
+  var cToday=0,cPrev=0,cMonth=0,chMonth={};
   QUOTE.forEach(function(r){
     var d=parseD(findStamp(r));
     if(!d) return;
     if(d>=today) cToday++;
-    if(d>=mon) cWeek++;
+    if(d>=pfirst && d<mfirst) cPrev++;
     if(d>=mfirst){ cMonth++; var w=r._main||'기타'; chMonth[w]=(chMonth[w]||0)+1; }
   });
   var chs=Object.keys(chMonth).sort(function(a,b){return chMonth[b]-chMonth[a];});
-  var h='<div class="row1">';
+  var ymd=function(d){return (d.getMonth()+1)+'/'+d.getDate();};
+  var h='<div class="range">'+now.getFullYear()+'년 '+(now.getMonth()+1)+'월 · '+
+        ymd(mfirst)+' ~ '+ymd(today)+'</div><div class="row1">';
   h+='<div class="pill"><div class="n">'+cToday+'</div><div class="l">오늘</div></div>';
-  h+='<div class="pill"><div class="n">'+cWeek+'</div><div class="l">이번주</div></div>';
   h+='<div class="pill"><div class="n">'+cMonth+'</div><div class="l">이번달</div></div>';
+  h+='<div class="pill"><div class="n">'+cPrev+'</div><div class="l">지난달</div></div>';
   h+='</div>';
   if(chs.length){
     h+='<div class="ch-title">채널별 (이번달)</div><div class="chs">';
@@ -1312,9 +1368,9 @@ function renderQuote(){
     h+='<span class="when">'+esc(fmtStamp(g('접수시각')))+'</span>';
     h+='</div>';
 
-    h+='<div class="move">🚚 이사 '+esc(fmtDate(g('이사예정일'))||'미정')+(g('날짜조절가능')==='예'?' (조절가능)':'')+(g('이사종류')?' · '+esc(g('이사종류')):'')+'</div>';
+    h+='<div class="move">이사 '+esc(fmtDate(g('이사예정일'))||'미정')+(g('날짜조절가능')==='예'?' (조절가능)':'')+(g('이사종류')?' · '+esc(g('이사종류')):'')+'</div>';
     var 방문=[fmtDate(g('견적희망일')),g('견적희망시간대'),fmtTime(g('견적희망시각'))].filter(Boolean).join(' ');
-    if(방문) h+='<div class="route">📅 방문 '+esc(방문)+(g('방문일시방식')?' <span class="cond">('+esc(g('방문일시방식'))+')</span>':'')+'</div>';
+    if(방문) h+='<div class="route">방문 '+esc(방문)+(g('방문일시방식')?' <span class="cond">('+esc(g('방문일시방식'))+')</span>':'')+'</div>';
 
     h+='<div class="rows">';
     h+='<div class="kv"><span class="k">출발</span>'+esc(from)+(g('출발지작업조건')?' <span class="cond">('+esc(g('출발지작업조건'))+')</span>':'')+'</div>';
@@ -1329,21 +1385,21 @@ function renderQuote(){
     if(r._detail){
       var lbl = (r._main==='지인소개') ? '소개해주신 분' : (r._main==='부동산소개' ? '부동산' : '상세');
       var tel2=String(g('소개자연락처')||'').replace(/\D/g,'');
-      h+='<div class="refline">🎁 '+esc(lbl)+' : '+esc(r._detail)
+      h+='<div class="refline">'+esc(lbl)+' : '+esc(r._detail)
         +(tel2?' &nbsp;<a href="tel:'+tel2+'" style="color:#4B3690">전화</a>':'')+'</div>';
     }
 
-    if(g('미촬영공간')) h+='<div class="warn">⚠ 사진 없음 : '+esc(g('미촬영공간'))+'</div>';
-    if(g('특이사항')) h+='<div class="note">📝 '+esc(g('특이사항'))+'</div>';
-    if(r['사진폴더URL']) h+='<div class="photo">📷 <a href="'+esc(r['사진폴더URL'])+'" target="_blank">사진폴더 열기</a></div>';
+    if(g('미촬영공간')) h+='<div class="warn">사진 없음 : '+esc(g('미촬영공간'))+'</div>';
+    if(g('특이사항')) h+='<div class="note">'+esc(g('특이사항'))+'</div>';
+    if(r['사진폴더URL']) h+='<div class="photo"><a href="'+esc(r['사진폴더URL'])+'" target="_blank">사진폴더 열기</a></div>';
 
     h+='<div class="acts">';
-    h+='<button class="a main" id="cp'+i+'" onclick="copyAll('+i+')">📋 전체 복사 (메모란용)</button>';
+    h+='<button class="a main" id="cp'+i+'" onclick="copyAll('+i+')">전체 복사 (메모란용)</button>';
     h+='<a class="a tel" style="text-decoration:none" href="tel:'+g('연락처').replace(/\D/g,'')+'">전화</a>';
     h+='</div>';
 
     h+='<div class="acts">';
-    h+='<button class="a draft" id="dr'+i+'" onclick="copyDraft('+i+')">💬 답문 초안 복사 (고객 발송용)</button>';
+    h+='<button class="a draft" id="dr'+i+'" onclick="copyDraft('+i+')">답문 초안 복사 (고객 발송용)</button>';
     h+='</div>';
 
     h+='<div class="chips2">';
