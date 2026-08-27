@@ -46,16 +46,46 @@
   .stats{background:#fff;color:var(--navy);border:1px solid var(--line);border-radius:14px;
     padding:16px 16px 14px;margin-bottom:12px}
   .stats .row1{display:flex;gap:8px;margin-bottom:12px}
-  .stats .pill{flex:1;background:var(--navyBg);border-radius:11px;padding:11px 8px;text-align:center}
-  .stats .pill .n{font-size:22px;font-weight:900;letter-spacing:-.5px;color:var(--navy)}
+  .stats .pill{flex:1;background:var(--acBg,var(--navyBg));border-radius:11px;padding:11px 8px;text-align:center}
+  .stats .pill .n{font-size:22px;font-weight:900;letter-spacing:-.5px;color:var(--ac,var(--navy))}
   .stats .pill .l{font-size:12px;color:var(--muted);margin-top:3px;font-weight:700}
   .stats .ch-title{font-size:12px;color:var(--muted);font-weight:800;margin-bottom:7px}
   .stats .chs{display:flex;flex-wrap:wrap;gap:6px}
-  .stats .ch{background:var(--navyBg);color:var(--navy);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700}
-  .stats .ch b{color:var(--teal);margin-left:3px}
+  .stats .ch{background:var(--acBg,var(--navyBg));color:var(--navy);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700}
+  .stats .ch b{color:var(--ac,var(--teal));margin-left:3px}
   .searchbar{position:relative;margin-bottom:10px}
+  /* 검색창 — 회색 바탕. 흰 카드(보는 것)와 확실히 갈린다 */
   .searchbar input{width:100%;box-sizing:border-box;font-size:16px;padding:13px 40px 13px 14px;
-    border-radius:11px;border:1.5px solid var(--line);outline:none;font-family:inherit;background:#fff}
+    border-radius:11px;border:1.5px solid transparent;outline:none;font-family:inherit;
+    background:#E9EDF3;color:var(--navy);transition:background .15s,border-color .15s}
+  .searchbar input::placeholder{color:#8B95A6}
+  .searchbar input:focus{background:#fff;border-color:var(--teal)}
+
+  /* ═══ 마무리 — 눈에 안 띄지만 완성도를 만드는 것들 ═══ */
+
+  /* 누르면 살짝 눌리는 느낌. 폰에서 「눌렸나?」 헷갈리지 않게 */
+  .tab,.st,.st2,.hchip,.btn-refresh,.a,.hrow{transition:background .14s,color .14s,border-color .14s,transform .08s}
+  .st:active,.st2:active,.hchip:active,.a:active,.btn-refresh:active{transform:scale(.97)}
+
+  /* 탭을 옮길 때 내용이 툭 나타나지 않게 */
+  #pane-quote,#pane-refer,#pane-callback,#pane-review,#pane-hit{animation:fadeUp .18s ease-out}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* 폰 아래 홈바에 내용이 가리지 않게 */
+  .wrap{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+
+  /* 키보드로 옮겨 다닐 때 지금 어디인지 보이게 */
+  .tab:focus-visible,.st:focus-visible,.hchip:focus-visible,.a:focus-visible,
+  .searchbar input:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+  /* 긴 목록을 스크롤할 때 표 머리가 붙어 있게 */
+  .ctab th,.mtab th{position:sticky;top:0;z-index:1}
+
+  /* 숫자는 자릿수가 흔들리지 않게 */
+  .stats .pill .n,.rvstat .avg,.hgcol .v,.hitrow .pc,.ctab td{font-variant-numeric:tabular-nums}
+
+  /* 글자를 끌어 선택할 때 파란 기본색 대신 우리 색 */
+  ::selection{background:var(--tealBg);color:var(--navy)}
   .searchbar input:focus{border-color:var(--navy)}
   .qclear{position:absolute;right:8px;top:50%;transform:translateY(-50%);
     border:none;background:var(--navyBg);color:var(--muted);border-radius:999px;
@@ -63,14 +93,14 @@
   .subtabs{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
   .st{border:1px solid var(--line);background:#fff;color:var(--muted);
     border-radius:999px;padding:8px 15px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
-  .st.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .st.on{background:var(--ac,var(--teal));color:#fff;border-color:var(--ac,var(--teal))}
   /* ★v2 : 2단 상세 칩 (소개자·부동산 등) */
   .subtabs2{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;
     background:var(--navyBg);border-radius:11px;padding:10px 11px}
   .subtabs2 .lbl2{width:100%;font-size:12.5px;font-weight:800;color:var(--muted);margin-bottom:2px}
   .st2{border:1px solid #C9D3E4;background:#fff;color:var(--navy);
     border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}
-  .st2.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .st2.on{background:var(--ac,var(--teal));color:#fff;border-color:var(--ac,var(--teal))}
 
   .bar{display:flex;align-items:center;gap:8px;margin-bottom:12px}
   .bar .cnt{font-size:14px;color:var(--muted);font-weight:700}
@@ -140,15 +170,15 @@
     padding:16px 16px 14px;margin-bottom:12px;display:none}
   .rvstat .big{display:flex;align-items:baseline;gap:10px;margin-bottom:11px}
   .rvstat .stars{color:#E3B34A;font-size:23px;letter-spacing:2px}
-  .rvstat .avg{font-size:30px;font-weight:900;letter-spacing:-1px}
+  .rvstat .avg{font-size:30px;font-weight:900;letter-spacing:-1px;color:var(--ac,var(--navy))}
   .rvstat .avg small{font-size:14px;font-weight:700;color:var(--muted);margin-left:4px}
   .rvstat .row{display:flex;flex-wrap:wrap;gap:7px}
   .rvstat .cell.clickable{cursor:pointer;transition:transform .1s,box-shadow .1s}
   .rvstat .cell.clickable:active{transform:scale(.96)}
   .rvstat .cell.picked{outline:2px solid var(--teal);outline-offset:1px}
-  .rvstat .cell{background:var(--navyBg);border-radius:999px;padding:8px 14px;
+  .rvstat .cell{background:var(--acBg,var(--navyBg));border-radius:999px;padding:8px 14px;
     font-size:13.5px;font-weight:800;color:var(--navy)}
-  .rvstat .cell b{color:var(--teal);margin-left:5px;font-size:14.5px}
+  .rvstat .cell b{color:var(--ac,var(--teal));margin-left:5px;font-size:14.5px}
   .rvstat .cell.warn{background:var(--coralBg);color:var(--coral)}
   .rvstat .cell.warn b{color:var(--coral);font-size:15px}
   .rv{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-bottom:10px}
@@ -187,6 +217,21 @@
   .empty .big{font-size:15px;font-weight:800;margin-bottom:6px;color:var(--navy)}
   .loading{text-align:center;padding:50px 20px;color:var(--muted);font-size:13px}
   .soon{text-align:center;padding:44px 20px;color:var(--muted)}
+
+  /* ═══ 탭마다 성격을 주는 색 — 왼쪽 4px 띠와 숫자에만 쓴다
+     면적이 작아 요란하지 않으면서 어느 탭인지 바로 알 수 있다 ═══ */
+  #pane-quote    { --ac:var(--navy);  --acBg:var(--navyBg); }
+  #pane-refer    { --ac:var(--teal);  --acBg:var(--tealBg); }
+  #pane-callback { --ac:var(--muted); --acBg:#F1F3F7; }
+  #pane-review   { --ac:var(--amber); --acBg:var(--amberBg); }
+  #pane-hit      { --ac:var(--blue);  --acBg:var(--blueBg); }
+
+  /* 카드·통계상자 왼쪽 띠 */
+  .stats, .rvstat, .card{position:relative;overflow:hidden}
+  .stats::before, .rvstat::before{
+    content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;
+    background:var(--ac,var(--navy));border-radius:0 3px 3px 0}
+  .stats, .rvstat{padding-left:20px}
   /* ═══ 반응 탭 ═══ */
   .hitrange{display:flex;justify-content:flex-start;gap:6px;flex-wrap:wrap;
     margin:4px 0 14px;text-align:left}
@@ -194,14 +239,14 @@
     border-radius:999px;padding:7px 13px;font-size:13px;font-weight:700;
     cursor:pointer;font-family:inherit;flex:0 0 auto}
   /* 고른 칸은 teal — 상단바 네이비와 색이 겹치지 않게 */
-  .hchip.on{background:var(--teal);border-color:var(--teal);color:#fff}
+  .hchip.on{background:var(--ac,var(--teal));border-color:var(--ac,var(--teal));color:#fff}
   @media (max-width:480px){
     .hitrange{gap:4px}
     .hchip{padding:7px 9px;font-size:12.5px}
   }
   @media (max-width:360px){ .hchip{padding:6px 7px;font-size:12px} }
   .hitbar{height:9px;background:var(--navyBg);border-radius:5px;overflow:hidden;margin-top:6px}
-  .hitbar i{display:block;height:100%;background:var(--teal);border-radius:5px}
+  .hitbar i{display:block;height:100%;background:var(--ac,var(--teal));border-radius:5px}
   .hitrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
   .hitrow:last-child{border-bottom:none}
   .hitrow .nm{flex:1;min-width:0}
@@ -237,7 +282,7 @@
     border-bottom:2px solid var(--line);margin:6px 0 4px}
   .hgcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
   .hgcol .v{font-size:13px;font-weight:800;color:var(--navy);margin-bottom:4px}
-  .hgcol .bar{width:100%;max-width:46px;background:var(--teal);border-radius:6px 6px 0 0;min-height:3px}
+  .hgcol .bar{width:100%;max-width:46px;background:var(--ac,var(--teal));border-radius:6px 6px 0 0;min-height:3px}
   .hgcol.zero .bar{background:var(--line)}
   .hgcol.zero .v{color:var(--muted)}
   .hglbl{display:flex;gap:8px;padding:8px 4px 0}
@@ -273,7 +318,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v16 · 0826-1945</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v17 · 0827-2250</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
