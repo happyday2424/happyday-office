@@ -48,7 +48,7 @@
   .stats .row1{display:flex;gap:8px;margin-bottom:12px}
   .stats .pill{flex:1;background:var(--acBg,var(--navyBg));border-radius:11px;padding:11px 8px;text-align:center}
   .stats .pill .n{font-size:22px;font-weight:900;letter-spacing:-.5px;color:var(--ac,var(--navy))}
-  .stats .pill .l{font-size:12px;color:var(--muted);margin-top:3px;font-weight:700}
+  .stats .pill .l{font-size:12.5px;color:var(--muted);margin-top:4px;font-weight:800}
   .stats .ch-title{font-size:12px;color:var(--muted);font-weight:800;margin-bottom:7px}
   .stats .chs{display:flex;flex-wrap:wrap;gap:6px}
   .stats .ch{background:var(--acBg,var(--navyBg));color:var(--navy);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700}
@@ -236,7 +236,27 @@
   .hitrange{display:flex;justify-content:flex-start;gap:6px;flex-wrap:wrap;
     margin:4px 0 8px;text-align:left}
   /* 어느 날짜를 보고 있는지 항상 적는다 — 칩만 있으면 언제인지 모른다 */
-  .range{font-size:12.5px;color:var(--muted);font-weight:700;margin:0 2px 12px;letter-spacing:-.2px}
+  /* 어느 기간을 보고 있는지 — 작으면 안 읽힌다 */
+  .range{font-size:15px;font-weight:800;color:var(--navy);margin:0 2px 12px;letter-spacing:-.4px}
+  .range b{color:var(--ac,var(--navy));margin-right:7px}
+  .range span{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:-.2px}
+
+  /* ═══ 기간 고르기 — 월·분기·반기·연도 ═══ */
+  .pbar{margin:2px 0 12px}
+  .prow{display:flex;gap:5px;flex-wrap:wrap}
+  .prow.sub{margin-top:6px}
+  .pchip{border:1px solid var(--line);background:#fff;color:var(--muted);
+    border-radius:999px;padding:7px 15px;font-size:13.5px;font-weight:800;
+    cursor:pointer;font-family:inherit;flex:0 0 auto;letter-spacing:-.3px}
+  .pchip.on{background:var(--ac,var(--navy));border-color:var(--ac,var(--navy));color:#fff}
+  .pchip.sm{padding:6px 12px;font-size:12.5px;font-weight:700}
+  .pchip.sm.on{background:var(--acBg,var(--navyBg));border-color:var(--ac,var(--navy));
+    color:var(--ac,var(--navy))}
+  @media (max-width:480px){
+    .prow{gap:4px}
+    .pchip{padding:7px 11px;font-size:12.5px}
+    .pchip.sm{padding:6px 9px;font-size:12px}
+  }
   /* 출처 칩 — 기간 칩보다 한 단계 작게. 무엇이 상위인지 보이게 */
   #hitFrom{margin:0 0 8px}
   #hitFrom .hchip{padding:5px 11px;font-size:12px}
@@ -332,7 +352,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v21 · 0831-1535</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v22 · 0831-1550</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -789,24 +809,24 @@ function renderReferAll(){
 function renderReferStats(){
   var now=new Date();
   var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  var mfirst=new Date(now.getFullYear(),now.getMonth(),1);
-  var pfirst=new Date(now.getFullYear(),now.getMonth()-1,1);
+  var cur=periodOf(PERIOD.unit,PERIOD.back);
+  var prv=periodOf(PERIOD.unit,PERIOD.back+1);
   var rows=introRows();
-  var cMonth=0, cPrev=0, cJi=0, cBu=0;
+  var cCur=0, cPrv=0, cJi=0, cBu=0;
   rows.forEach(function(r){
     var d=parseD(findStamp(r));
-    if(d && d>=mfirst) cMonth++;
-    if(d && d>=pfirst && d<mfirst) cPrev++;
-    if(r._main==='지인소개') cJi++; else cBu++;
+    if(d && d>=cur.from && d<cur.to){
+      cCur++;
+      if(r._main==='지인소개') cJi++; else cBu++;
+    }
+    if(d && d>=prv.from && d<prv.to) cPrv++;
   });
-  var ymd=function(d){return (d.getMonth()+1)+'/'+d.getDate();};
-  var h='<div class="range">'+now.getFullYear()+'년 '+(now.getMonth()+1)+'월 · '+
-        ymd(mfirst)+' ~ '+ymd(today)+'</div><div class="row1">';
-  h+='<div class="pill"><div class="n">'+cMonth+dltHtml(cMonth,cPrev)+'</div><div class="l">'+monLabel(mfirst)+'</div></div>';
+  var h=periodBar()+periodTitle(cur)+'<div class="row1">';
+  h+='<div class="pill"><div class="n">'+cCur+dltHtml(cCur,cPrv)+'</div><div class="l">'+esc(cur.name)+'</div></div>';
   h+='<div class="pill"><div class="n">'+cJi+'</div><div class="l">지인 소개</div></div>';
   h+='<div class="pill"><div class="n">'+cBu+'</div><div class="l">부동산 소개</div></div>';
   h+='</div>';
-  h+='<div class="ch-title">소개로 온 문의 모두 '+rows.length+'건 · '+monLabel(pfirst)+' '+cPrev+'건</div>';
+  h+='<div class="ch-title">소개로 온 문의 모두 '+rows.length+'건 · '+esc(prv.name)+' '+cPrv+'건</div>';
   document.getElementById('referStats').innerHTML=h;
 }
 
@@ -1045,9 +1065,8 @@ function renderRvStat(){
 
   /* 평가(후기링크로 들어온 것) 기준 — 점수만 준 고객까지 전부 */
   var n=0, sum=0, rec=0, low=0, wait=0, pub=0;
-  var now=new Date();
-  var mfirst=new Date(now.getFullYear(),now.getMonth(),1);
-  var pfirst=new Date(now.getFullYear(),now.getMonth()-1,1);
+  var cur=periodOf(PERIOD.unit,PERIOD.back);
+  var prv=periodOf(PERIOD.unit,PERIOD.back+1);
   var mNow=0, mPrev=0;
   RATING.forEach(function(v){
     var a=Number(v.avg)||0;
@@ -1055,10 +1074,10 @@ function renderRvStat(){
     if(String(v.recommend||'').toUpperCase()==='Y') rec++;
     if(a&&a<=3.9) low++;          /* ★ 평균이 3점대 이하인 건 */
     if(v.published) pub++; else wait++;
-    /* 이번 달·지난 달 평가 도착 — 네 탭이 같은 부품을 쓴다 */
+    /* 고른 기간·직전 기간 평가 도착 — 네 탭이 같은 부품을 쓴다 */
     var d=parseD(v.date||v.made||'');
-    if(d && d>=mfirst) mNow++;
-    else if(d && d>=pfirst) mPrev++;
+    if(d && d>=cur.from && d<cur.to) mNow++;
+    else if(d && d>=prv.from && d<prv.to) mPrev++;
   });
 
   /* 공개 중인 후기(숨고 등 포함) */
@@ -1071,10 +1090,11 @@ function renderRvStat(){
   var full=Math.round(avg), s='';
   for(var i=0;i<5;i++) s+=(i<full?'★':'☆');
 
-  var h='<div class="big"><span class="stars">'+s+'</span>'
+  var h=periodBar()+periodTitle(cur);
+  h+='<div class="big"><span class="stars">'+s+'</span>'
       +'<span class="avg">'+(avg?avg.toFixed(1):'-')+'<small>평가 평균 점수</small></span></div>';
-  h+='<div class="ch-title" style="margin:8px 0 2px">'+monLabel(mfirst)+' 평가 도착 '+mNow+
-     '건'+dltHtml(mNow,mPrev)+' · '+monLabel(pfirst)+' '+mPrev+'건</div>';
+  h+='<div class="ch-title" style="margin:8px 0 2px">'+esc(cur.name)+' 평가 도착 '+mNow+
+     '건'+dltHtml(mNow,mPrev)+' · '+esc(prv.name)+' '+mPrev+'건</div>';
   h+='<div class="row">';
 
   /* ★v10 : 눌러서 걸러볼 수 있게. picked 는 지금 보고 있는 것 */
@@ -1256,6 +1276,78 @@ function loadQuote(){
   });
 }
 
+/* ═══════════════════════════════════════════════
+   기간 고르기 — 네 탭이 함께 쓴다
+   월 · 분기 · 반기 · 연도 중에 고르고, 그 안에서 어느 구간인지 고른다.
+   무엇을 고르든 「직전 같은 기간」과 견준다.
+   ═══════════════════════════════════════════════ */
+var PERIOD = { unit:'month', back:0 };   /* back 0 = 이번, 1 = 직전 */
+
+/* 고른 기간의 시작·끝·이름을 낸다 */
+function periodOf(unit, back){
+  var now=new Date(), y=now.getFullYear(), m=now.getMonth();
+  var from, to, name;
+  if(unit==='month'){
+    var d=new Date(y, m-back, 1);
+    from=d; to=new Date(d.getFullYear(), d.getMonth()+1, 1);
+    name=(d.getFullYear()===y?'':d.getFullYear()+'년 ')+(d.getMonth()+1)+'월';
+  }else if(unit==='quarter'){
+    var q=Math.floor(m/3)-back, qy=y;
+    while(q<0){ q+=4; qy--; }
+    from=new Date(qy, q*3, 1); to=new Date(qy, q*3+3, 1);
+    name=(qy===y?'':qy+'년 ')+(q+1)+'분기';
+  }else if(unit==='half'){
+    var hh=Math.floor(m/6)-back, hy=y;
+    while(hh<0){ hh+=2; hy--; }
+    from=new Date(hy, hh*6, 1); to=new Date(hy, hh*6+6, 1);
+    name=(hy===y?'':hy+'년 ')+(hh===0?'상반기':'하반기');
+  }else{
+    var yy=y-back;
+    from=new Date(yy,0,1); to=new Date(yy+1,0,1);
+    name=yy+'년';
+  }
+  return { from:from, to:to, name:name };
+}
+
+var UNITS=[['month','월'],['quarter','분기'],['half','반기'],['year','연도']];
+
+/* 기간 칩 두 줄을 그린다 — 위는 단위, 아래는 어느 구간 */
+function periodBar(id){
+  var h='<div class="pbar"><div class="prow">';
+  UNITS.forEach(function(u){
+    h+='<button type="button" class="pchip'+(PERIOD.unit===u[0]?' on':'')+
+       '" data-punit="'+u[0]+'">'+u[1]+'</button>';
+  });
+  h+='</div><div class="prow sub">';
+  for(var i=0;i<6;i++){
+    var p=periodOf(PERIOD.unit,i);
+    h+='<button type="button" class="pchip sm'+(PERIOD.back===i?' on':'')+
+       '" data-pback="'+i+'">'+esc(p.name)+'</button>';
+  }
+  h+='</div></div>';
+  return h;
+}
+
+function ymd2(d){ return (d.getMonth()+1)+'/'+d.getDate(); }
+
+/* 「2026년 8월 · 8/1 ~ 8/31」 같은 줄 */
+function periodTitle(p){
+  var last=new Date(p.to.getTime()-86400000);
+  return '<div class="range"><b>'+esc(p.name)+'</b><span>'+ymd2(p.from)+' ~ '+ymd2(last)+'</span></div>';
+}
+
+/* 기간 칩 눌렀을 때 — 네 탭 공통 */
+document.addEventListener('click',function(e){
+  var t=e.target.closest?e.target.closest('.pchip'):null;
+  if(!t) return;
+  if(t.dataset.punit){ PERIOD.unit=t.dataset.punit; PERIOD.back=0; }
+  else if(t.dataset.pback!==undefined){ PERIOD.back=Number(t.dataset.pback); }
+  else return;
+  try{ renderStats(); }catch(e2){}
+  try{ renderReferStats(); }catch(e2){}
+  try{ renderRvStat(); }catch(e2){}
+});
+
 /* ═══ 네 탭이 함께 쓰는 부품 ═══
    증감 뱃지 — 이번 달과 지난 달을 견준다.
    모양과 자리는 네 탭이 같고, 세는 대상만 탭마다 다르다. */
@@ -1275,26 +1367,24 @@ function renderStats(){
   var now=new Date();
   var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   /* 실적은 달력 단위로 센다 — 「최근 30일」로 세면 지난달이 섞여 정산이 안 된다 */
-  var mfirst=new Date(now.getFullYear(),now.getMonth(),1);
-  var pfirst=new Date(now.getFullYear(),now.getMonth()-1,1);
-  var cToday=0,cPrev=0,cMonth=0,chMonth={};
+  var cur=periodOf(PERIOD.unit,PERIOD.back);
+  var prv=periodOf(PERIOD.unit,PERIOD.back+1);
+  var cToday=0,cCur=0,cPrv=0,chMonth={};
   QUOTE.forEach(function(r){
     var d=parseD(findStamp(r));
     if(!d) return;
     if(d>=today) cToday++;
-    if(d>=pfirst && d<mfirst) cPrev++;
-    if(d>=mfirst){ cMonth++; var w=r._main||'기타'; chMonth[w]=(chMonth[w]||0)+1; }
+    if(d>=prv.from && d<prv.to) cPrv++;
+    if(d>=cur.from && d<cur.to){ cCur++; var w=r._main||'기타'; chMonth[w]=(chMonth[w]||0)+1; }
   });
   var chs=Object.keys(chMonth).sort(function(a,b){return chMonth[b]-chMonth[a];});
-  var ymd=function(d){return (d.getMonth()+1)+'/'+d.getDate();};
-  var h='<div class="range">'+now.getFullYear()+'년 '+(now.getMonth()+1)+'월 · '+
-        ymd(mfirst)+' ~ '+ymd(today)+'</div><div class="row1">';
+  var h=periodBar()+periodTitle(cur)+'<div class="row1">';
   h+='<div class="pill"><div class="n">'+cToday+'</div><div class="l">오늘</div></div>';
-  h+='<div class="pill"><div class="n">'+cMonth+dltHtml(cMonth,cPrev)+'</div><div class="l">'+monLabel(mfirst)+'</div></div>';
-  h+='<div class="pill"><div class="n">'+cPrev+'</div><div class="l">'+monLabel(pfirst)+'</div></div>';
+  h+='<div class="pill"><div class="n">'+cCur+dltHtml(cCur,cPrv)+'</div><div class="l">'+esc(cur.name)+'</div></div>';
+  h+='<div class="pill"><div class="n">'+cPrv+'</div><div class="l">'+esc(prv.name)+'</div></div>';
   h+='</div>';
   if(chs.length){
-    h+='<div class="ch-title">채널별 (이번달)</div><div class="chs">';
+    h+='<div class="ch-title">채널별 · '+esc(cur.name)+'</div><div class="chs">';
     chs.forEach(function(w){ h+='<div class="ch">'+esc(w)+'<b>'+chMonth[w]+'</b></div>'; });
     h+='</div>';
   }
