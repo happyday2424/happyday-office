@@ -237,6 +237,9 @@
     margin:4px 0 8px;text-align:left}
   /* 어느 날짜를 보고 있는지 항상 적는다 — 칩만 있으면 언제인지 모른다 */
   .range{font-size:12.5px;color:var(--muted);font-weight:700;margin:0 2px 12px;letter-spacing:-.2px}
+  /* 출처 칩 — 기간 칩보다 한 단계 작게. 무엇이 상위인지 보이게 */
+  #hitFrom{margin:0 0 8px}
+  #hitFrom .hchip{padding:5px 11px;font-size:12px}
   .hchip{border:1px solid var(--line);background:#fff;color:var(--muted);
     border-radius:999px;padding:7px 13px;font-size:13px;font-weight:700;
     cursor:pointer;font-family:inherit;flex:0 0 auto}
@@ -323,7 +326,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v18 · 0827-2330</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v19 · 0831-1510</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -370,6 +373,7 @@
         <button class="hchip" data-days="90">최근 90일</button>
         <button class="hchip" data-days="month">월별</button>
       </div>
+      <div class="hitrange" id="hitFrom"></div>
       <div class="range" id="hitRangeTxt"></div>
       <div id="hitBody"><div class="soon">불러오는 중…</div></div>
     </div>
@@ -505,6 +509,7 @@ var LGFILTER='all';   /* all | 지인소개 | 부동산소개 */
 var HIT_DAYS = '1';
 
 var HIT_YM='';   /* 월별에서 고른 달. 비어 있으면 표 전체 */
+var HIT_F='';    /* 어디서 온 손님만 볼지. 비어 있으면 전체 */
 
 /* 날짜를 사람 말로 — 2026-08-21 → 8/21 */
 function dmd(v){
@@ -518,6 +523,21 @@ function dfull(v){
   return Number(m[1])+'년 '+Number(m[2])+'월 '+Number(m[3])+'일 ('+w+')';
 }
 
+/* 어디서 온 손님인지 갈라 보는 칩 — 숨고·블로그·인스타는 주소에 표시가 붙는다.
+   표시가 없으면 문자씨(콜백)로 본다. */
+function renderFroms(list){
+  var el=document.getElementById('hitFrom');
+  if(!el) return;
+  if(!list||!list.length){ el.innerHTML=''; return; }
+  var tot=0; list.forEach(function(x){ tot+=x.people||0; });
+  var h='<button type="button" class="hchip'+(HIT_F?'':' on')+'" data-f="">전체 '+tot+'</button>';
+  list.forEach(function(x){
+    h+='<button type="button" class="hchip'+(HIT_F===x.name?' on':'')+'" data-f="'+esc(x.name)+'">'+
+       esc(x.name)+' '+(x.people||0)+'</button>';
+  });
+  el.innerHTML=h;
+}
+
 function setHitRange(txt){
   var el=document.getElementById('hitRangeTxt');
   if(el) el.textContent=txt||'';
@@ -529,7 +549,7 @@ function loadHit(){
     if(HIT_YM){
       /* 달을 골랐으면 그 달만 자세히 */
       setHitRange('');
-      fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logOne&ym='+encodeURIComponent(HIT_YM))
+      fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logOne&ym='+encodeURIComponent(HIT_YM)+'&f='+encodeURIComponent(HIT_F))
         .then(function(r){return r.json();}).then(function(res){
           renderHit(res && res.ok ? res : null, true);
         }).catch(function(){ renderHit(null,true); });
@@ -542,7 +562,7 @@ function loadHit(){
       .catch(function(){ renderMonth(null); });
     return;
   }
-  var url=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logStat&days='+HIT_DAYS;
+  var url=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logStat&days='+HIT_DAYS+'&f='+encodeURIComponent(HIT_F);
   fetch(url).then(function(r){return r.json();}).then(function(res){
     renderHit(res && res.ok ? res : null);
   }).catch(function(){ renderHit(null); });
@@ -592,7 +612,8 @@ function renderHit(d,one){
     return;
   }
   var open=d.opened||0;
-  if(!one) document.getElementById('cnt-hit').textContent=open;
+  if(!one && !HIT_F) document.getElementById('cnt-hit').textContent=open;
+  renderFroms(d.froms);
 
   /* ★ 어느 날짜를 보고 있는지 적는다 */
   if(one){
@@ -690,6 +711,13 @@ document.addEventListener('click',function(e){
   var y=e.target.closest?e.target.closest('.ymbtn'):null;
   if(!y) return;
   HIT_YM=y.dataset.ym; loadHit();
+});
+
+/* 출처 칩 */
+document.addEventListener('click',function(e){
+  var f=e.target.closest?e.target.closest('#hitFrom .hchip'):null;
+  if(!f) return;
+  HIT_F=f.dataset.f||''; loadHit();
 });
 
 document.addEventListener('click',function(e){
