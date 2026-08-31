@@ -275,6 +275,12 @@
     color:var(--ac,var(--navy));cursor:pointer;padding:7px 9px;border-radius:8px}
   .ymbtn:hover{background:var(--acBg,var(--navyBg))}
   .mtab td.g{color:var(--teal);font-weight:800}
+  /* 증감 뱃지 — 네 탭이 같은 모양으로 쓴다. 늘면 초록, 줄면 주황 */
+  .dlt{display:inline-block;margin-left:5px;font-size:11.5px;font-weight:800;color:var(--muted);
+    letter-spacing:-.2px;white-space:nowrap;vertical-align:middle}
+  .dlt.up{color:var(--teal)}
+  .dlt.dn{color:var(--coral)}
+  .stats .pill .n .dlt{display:block;margin:3px 0 0;font-size:11px}
   .ctab{border-collapse:collapse;width:100%;font-size:13.5px}
   .ctab th{background:var(--navyBg);color:var(--navy);font-weight:800;font-size:12px;
     padding:8px 6px;border-bottom:2px solid var(--line);text-align:center}
@@ -326,7 +332,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v19 · 0831-1520</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v21 · 0831-1535</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -582,16 +588,40 @@ function renderMonth(rows){
     return;
   }
   var cols=['홈 열림','견적 신청하기','견적 전송 누름','왜 청소가 공짜지','7 · 5','고객 후기','회사 소개','지인에게'];
+  /* 시트가 달을 날짜로 바꿔놨어도 2026-08 모양으로 되돌린다 */
+  function ymTxt(v){
+    var t=String(v||'').trim();
+    var m=t.match(/^(\d{4})-(\d{2})/);
+    if(m) return m[1]+'-'+m[2];
+    var d=new Date(t);
+    if(!isNaN(d.getTime())) return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);
+    return t;
+  }
   var h='<div class="card" style="overflow-x:auto">'+
     '<div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px">달마다 몇 명이 눌렀나</div>'+
     '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">사람 수 기준 · 최신 달이 위</div>'+
     '<table class="mtab"><tr><th>달</th>';
   cols.forEach(function(c){ h+='<th>'+esc(c)+'</th>'; });
   h+='<th>청소<br>전환율</th><th>7·5<br>전환율</th><th>후기<br>전환율</th><th>안 본<br>전환율</th></tr>';
-  rows.forEach(function(r){
-    var ym=String(r['달']||'');
+  /* 최신 달이 위. 바로 아래 줄이 전달이므로 증감을 낼 수 있다 */
+  rows.forEach(function(r,ix){
+    var ym=ymTxt(r['달']);
+    var prev=rows[ix+1];
     h+='<tr><td class="m"><button type="button" class="ymbtn" data-ym="'+esc(ym)+'">'+esc(ym)+'</button></td>';
-    cols.forEach(function(c){ h+='<td>'+(r[c]===''||r[c]==null?'–':r[c])+'</td>'; });
+    cols.forEach(function(c,ci){
+      var v=(r[c]===''||r[c]==null)?null:Number(r[c]);
+      var cell=(v===null||isNaN(v))?'–':v;
+      /* 첫 칸(홈 열림)에만 전달 대비 증감을 붙인다 — 다 붙이면 표가 빽빽해진다 */
+      if(ci===0 && prev && v!==null && !isNaN(v)){
+        var pv=Number(prev[c]);
+        if(!isNaN(pv) && pv>0){
+          var df=v-pv, pc=Math.round(df/pv*1000)/10;
+          cell+='<span class="dlt '+(df>0?'up':(df<0?'dn':''))+'">'+
+                (df>0?'▲':(df<0?'▼':'·'))+Math.abs(df)+'</span>';
+        }
+      }
+      h+='<td>'+cell+'</td>';
+    });
     ['청소 전환율(%)','7·5 전환율(%)','후기 전환율(%)','아무것도 안 본 전환율(%)'].forEach(function(k,ix){
       var v=r[k];
       h+='<td class="'+(ix===3?'':'g')+'">'+(v===''||v==null?'–':v+'%')+'</td>';
@@ -760,19 +790,23 @@ function renderReferStats(){
   var now=new Date();
   var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   var mfirst=new Date(now.getFullYear(),now.getMonth(),1);
+  var pfirst=new Date(now.getFullYear(),now.getMonth()-1,1);
   var rows=introRows();
-  var cMonth=0, cJi=0, cBu=0;
+  var cMonth=0, cPrev=0, cJi=0, cBu=0;
   rows.forEach(function(r){
     var d=parseD(findStamp(r));
     if(d && d>=mfirst) cMonth++;
+    if(d && d>=pfirst && d<mfirst) cPrev++;
     if(r._main==='지인소개') cJi++; else cBu++;
   });
-  var h='<div class="row1">';
-  h+='<div class="pill"><div class="n">'+rows.length+'</div><div class="l">소개로 온 문의</div></div>';
+  var ymd=function(d){return (d.getMonth()+1)+'/'+d.getDate();};
+  var h='<div class="range">'+now.getFullYear()+'년 '+(now.getMonth()+1)+'월 · '+
+        ymd(mfirst)+' ~ '+ymd(today)+'</div><div class="row1">';
+  h+='<div class="pill"><div class="n">'+cMonth+dltHtml(cMonth,cPrev)+'</div><div class="l">'+monLabel(mfirst)+'</div></div>';
   h+='<div class="pill"><div class="n">'+cJi+'</div><div class="l">지인 소개</div></div>';
   h+='<div class="pill"><div class="n">'+cBu+'</div><div class="l">부동산 소개</div></div>';
   h+='</div>';
-  h+='<div class="ch-title">이번달 소개 유입 '+cMonth+'건</div>';
+  h+='<div class="ch-title">소개로 온 문의 모두 '+rows.length+'건 · '+monLabel(pfirst)+' '+cPrev+'건</div>';
   document.getElementById('referStats').innerHTML=h;
 }
 
@@ -1011,12 +1045,20 @@ function renderRvStat(){
 
   /* 평가(후기링크로 들어온 것) 기준 — 점수만 준 고객까지 전부 */
   var n=0, sum=0, rec=0, low=0, wait=0, pub=0;
+  var now=new Date();
+  var mfirst=new Date(now.getFullYear(),now.getMonth(),1);
+  var pfirst=new Date(now.getFullYear(),now.getMonth()-1,1);
+  var mNow=0, mPrev=0;
   RATING.forEach(function(v){
     var a=Number(v.avg)||0;
     if(a>=1&&a<=5){ n++; sum+=a; }
     if(String(v.recommend||'').toUpperCase()==='Y') rec++;
     if(a&&a<=3.9) low++;          /* ★ 평균이 3점대 이하인 건 */
     if(v.published) pub++; else wait++;
+    /* 이번 달·지난 달 평가 도착 — 네 탭이 같은 부품을 쓴다 */
+    var d=parseD(v.date||v.made||'');
+    if(d && d>=mfirst) mNow++;
+    else if(d && d>=pfirst) mPrev++;
   });
 
   /* 공개 중인 후기(숨고 등 포함) */
@@ -1031,6 +1073,8 @@ function renderRvStat(){
 
   var h='<div class="big"><span class="stars">'+s+'</span>'
       +'<span class="avg">'+(avg?avg.toFixed(1):'-')+'<small>평가 평균 점수</small></span></div>';
+  h+='<div class="ch-title" style="margin:8px 0 2px">'+monLabel(mfirst)+' 평가 도착 '+mNow+
+     '건'+dltHtml(mNow,mPrev)+' · '+monLabel(pfirst)+' '+mPrev+'건</div>';
   h+='<div class="row">';
 
   /* ★v10 : 눌러서 걸러볼 수 있게. picked 는 지금 보고 있는 것 */
@@ -1212,6 +1256,20 @@ function loadQuote(){
   });
 }
 
+/* ═══ 네 탭이 함께 쓰는 부품 ═══
+   증감 뱃지 — 이번 달과 지난 달을 견준다.
+   모양과 자리는 네 탭이 같고, 세는 대상만 탭마다 다르다. */
+function dltHtml(now,prev){
+  if(prev===null||prev===undefined||isNaN(prev)||prev<=0) return '';
+  var df=now-prev;
+  if(!df) return '<span class="dlt">· 지난달과 같음</span>';
+  var pc=Math.round(df/prev*1000)/10;
+  return '<span class="dlt '+(df>0?'up':'dn')+'">'+(df>0?'▲':'▼')+Math.abs(df)+
+         ' ('+(df>0?'+':'')+pc+'%)</span>';
+}
+/* 달 이름 — 「이번달·지난달」은 달이 바뀌면 같은 자리가 다른 달을 뜻한다 */
+function monLabel(d){ return (d.getMonth()+1)+'월'; }
+
 /* 통계 — 채널별은 대분류로 묶음 */
 function renderStats(){
   var now=new Date();
@@ -1232,8 +1290,8 @@ function renderStats(){
   var h='<div class="range">'+now.getFullYear()+'년 '+(now.getMonth()+1)+'월 · '+
         ymd(mfirst)+' ~ '+ymd(today)+'</div><div class="row1">';
   h+='<div class="pill"><div class="n">'+cToday+'</div><div class="l">오늘</div></div>';
-  h+='<div class="pill"><div class="n">'+cMonth+'</div><div class="l">이번달</div></div>';
-  h+='<div class="pill"><div class="n">'+cPrev+'</div><div class="l">지난달</div></div>';
+  h+='<div class="pill"><div class="n">'+cMonth+dltHtml(cMonth,cPrev)+'</div><div class="l">'+monLabel(mfirst)+'</div></div>';
+  h+='<div class="pill"><div class="n">'+cPrev+'</div><div class="l">'+monLabel(pfirst)+'</div></div>';
   h+='</div>';
   if(chs.length){
     h+='<div class="ch-title">채널별 (이번달)</div><div class="chs">';
