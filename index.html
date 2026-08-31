@@ -302,11 +302,48 @@
   .mtab td.g{color:var(--teal);font-weight:800}
   /* 증감 뱃지 — 네 탭이 같은 모양으로 쓴다. 늘면 초록, 줄면 주황 */
   /* ═══ 통계 탭 ═══ */
+  /* 모집구분 한 줄 — 이름 · 건수 · 비율 · 막대 */
+  .chrow{padding:11px 0;border-bottom:1px solid var(--line)}
+  .chrow:last-child{border-bottom:none;padding-bottom:2px}
+  .ct{display:flex;align-items:baseline;gap:8px}
+  .ct b{flex:1;min-width:0;font-size:13.5px;font-weight:800;color:var(--navy);letter-spacing:-.3px}
+  .ct .cn{font-size:13.5px;font-weight:800;color:var(--navy)}
+  .ct .cp{font-size:12.5px;font-weight:800;color:var(--ac,var(--navy));min-width:38px;text-align:right}
+  .cbar{height:7px;background:var(--acBg,var(--navyBg));border-radius:4px;overflow:hidden;margin-top:7px}
+  .cbar i{display:block;height:100%;background:var(--ac,var(--navy));border-radius:4px}
   .sth{font-size:15px;font-weight:800;color:var(--navy);letter-spacing:-.4px}
   .sts{font-size:12px;color:var(--muted);font-weight:700;margin:3px 0 10px}
   .stnote{font-size:14px;font-weight:800;color:var(--navy);margin-top:12px;
     padding-top:12px;border-top:1px solid var(--line)}
   .plan2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  /* 이사 예정 문의 — 네 달을 누를 수 있게 */
+  .plan4{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+  .plan4 .pcard{border:1px solid var(--line);padding:13px 6px}
+  .plan4 .pcard.now{border-color:var(--ac,var(--navy))}
+  /* 세 달 나란히 표 — 건수 위, 비율 아래. 둘 다 가운데 정렬 */
+  .ctab2{border-collapse:collapse;width:100%;table-layout:fixed}
+  .ctab2 th{background:var(--acBg,var(--navyBg));color:var(--navy);font-weight:800;
+    font-size:12px;padding:8px 4px;text-align:center;border-bottom:2px solid var(--line)}
+  .ctab2 th:first-child{text-align:left;padding-left:10px;width:34%}
+  .ctab2 td{padding:10px 4px;text-align:center;border-bottom:1px solid var(--line);
+    line-height:1.3;vertical-align:middle}
+  .ctab2 td.nm{text-align:left;padding-left:10px;font-size:13px;font-weight:800;color:var(--navy)}
+  .ctab2 td b{display:block;font-size:16px;font-weight:800;color:var(--navy);
+    font-variant-numeric:tabular-nums}
+  .ctab2 td i{display:block;font-style:normal;font-size:11.5px;font-weight:700;
+    color:var(--muted);margin-top:2px}
+  .ctab2 td i.thin{opacity:.5}
+  .ctab2 td.z{color:#C3CAD6;font-weight:700}
+  .ctab2 tr.sum td{background:#FAFBFC;border-top:2px solid var(--line);border-bottom:none}
+  .ctab2 tr.sum td b{color:var(--ac,var(--navy))}
+  .plan4 .pcard .pn{font-size:24px}
+  .plan4 .pcard .pn em{font-size:12px}
+  @media (max-width:400px){
+    .plan4{gap:5px}
+    .plan4 .pcard{padding:11px 3px}
+    .plan4 .pcard .pn{font-size:21px}
+    .plan4 .pcard .pm{font-size:11.5px}
+  }
   .pcard{background:var(--acBg,var(--navyBg));border-radius:12px;padding:16px 12px;text-align:center}
   .pcard.now{background:var(--ac,var(--navy))}
   .pcard .pm{font-size:12.5px;font-weight:800;color:var(--muted)}
@@ -371,7 +408,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v25 · 0831-2015</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v29 · 0831-2050</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -1295,6 +1332,8 @@ function loadQuote(){
     renderStats();
     renderQuote();
     document.getElementById('cnt-quote').textContent=QUOTE.length;
+    /* 자료가 왔으면 통계 탭도 다시 그린다 (숨겨져 있어도 미리 채워둔다) */
+    try{ renderStatTab(); }catch(e){}
   }).catch(function(err){
     document.getElementById('quoteList').innerHTML='<div class="empty"><div class="big">연결 오류</div>배포 주소를 확인하세요.<br><span style="font-size:11px">'+String(err)+'</span></div>';
   });
@@ -1306,6 +1345,7 @@ function loadQuote(){
    무엇을 고르든 「직전 같은 기간」과 견준다.
    ═══════════════════════════════════════════════ */
 var PERIOD = { unit:'month', back:0 };   /* back 0 = 이번, 1 = 직전 */
+var STAT_TRIED = 0;   /* 통계 탭에서 자료를 한 번만 부르게 */
 /* ★ 무엇을 기준으로 셀지
    접수일 — 이번 달 문의가 얼마나 들어왔나 (마케팅 성적)
    이사일 — 그 달에 일이 얼마나 잡혔나 (일정·인력)
@@ -1412,80 +1452,122 @@ function monLabel(d){ return (d.getMonth()+1)+'월'; }
    달별 흐름 · 이번달/다음달 · 채널별 표 · 반응 요약
    ═══════════════════════════════════════════════ */
 function renderStatTab(){
+  try{ statBody(); }
+  catch(err){
+    var b2=document.getElementById('pane-stat');
+    if(b2) b2.innerHTML='<div class="soon"><div class="big">통계를 그리지 못했습니다</div>'+
+      esc(String(err&&err.message||err))+
+      '<div style="margin-top:14px"><button class="a main" onclick="STAT_TRIED=0;renderStatTab()">다시 시도</button></div></div>';
+  }
+}
+
+function statBody(){
   var box=document.getElementById('pane-stat'); if(!box) return;
-  if(!QUOTE.length){ box.innerHTML='<div class="soon">견적 자료를 먼저 불러옵니다…</div>'; return; }
+  if(!QUOTE.length){
+    box.innerHTML='<div class="soon"><div class="big">견적 자료를 읽는 중입니다…</div>'+
+      '몇 초 뒤에도 그대로면 아래를 눌러 주세요.'+
+      '<div style="margin-top:14px"><button class="a main" onclick="STAT_TRIED=0;renderStatTab()">다시 시도</button></div></div>';
+    if(!STAT_TRIED){ STAT_TRIED=1; try{ loadQuote(); }catch(e){} }
+    return;
+  }
 
   var now=new Date(), y=now.getFullYear(), m=now.getMonth();
   var M=function(k){ return new Date(y, m+k, 1); };
   var lbl=function(d){ return (d.getMonth()+1)+'월'; };
 
-  /* 최근 6개월 — 접수일 기준 */
-  var months=[], mx=0;
-  for(var i=5;i>=0;i--){
-    var f=M(-i), t=M(-i+1), n=0, ch={};
-    QUOTE.forEach(function(r){
-      var d=parseD(findStamp(r));
-      if(d && d>=f && d<t){ n++; var w=r._main||'기타'; ch[w]=(ch[w]||0)+1; }
-    });
-    if(n>mx) mx=n;
-    months.push({ d:f, name:lbl(f), n:n, ch:ch });
-  }
-
-  /* 이사일 기준 — 이번달·다음달 (앞으로 일이 얼마나 잡혔나) */
+  /* ═══ ① 이사 예정 문의 — 본체.
+     「9월에 이사할 분이 몇 명 문의했나」가 매일 보는 숫자다 ═══ */
   var plan=[];
-  for(var j=0;j<2;j++){
-    var f2=M(j), t2=M(j+1), n2=0, ch2={};
+  for(var j=-1;j<=2;j++){
+    var f=M(j), t=M(j+1), n=0, ch={};
     QUOTE.forEach(function(r){
       var d=parseD(r['이사예정일']);
-      if(d && d>=f2 && d<t2){ n2++; var w=r._main||'기타'; ch2[w]=(ch2[w]||0)+1; }
+      if(d && d>=f && d<t){ n++; var w=r._main||'기타'; ch[w]=(ch[w]||0)+1; }
     });
-    plan.push({ name:lbl(f2), n:n2, ch:ch2 });
+    plan.push({ k:j, name:lbl(f), n:n, ch:ch });
   }
-
   var h='';
-
-  /* ① 달별 흐름 */
-  h+='<div class="card"><div class="sth">달마다 문의가 얼마나 들어왔나</div>'+
-     '<div class="sts">접수일 기준 · 최근 6개월</div><div class="hgraph">';
-  months.forEach(function(o){
-    var hh=mx? Math.round(o.n/mx*110):0;
-    h+='<div class="hgcol'+(o.n?'':' zero')+'"><div class="v">'+o.n+'</div>'+
-       '<div class="bar" style="height:'+hh+'px"></div></div>';
-  });
-  h+='</div><div class="hglbl">';
-  months.forEach(function(o){ h+='<div>'+o.name+'</div>'; });
-  h+='</div>';
-  /* 전달 대비 */
-  var last=months[5], prev=months[4];
-  h+='<div class="stnote">'+last.name+' '+last.n+'건'+dltHtml(last.n,prev.n)+'</div>';
-  h+='</div>';
-
-  /* ② 앞으로 잡힌 일 */
-  h+='<div class="card"><div class="sth">앞으로 일이 얼마나 잡혔나</div>'+
-     '<div class="sts">이사일 기준 · 손님은 대개 한 달 안쪽에 문의한다</div><div class="plan2">';
-  plan.forEach(function(o,ix){
-    h+='<div class="pcard'+(ix?'':' now')+'"><div class="pm">'+o.name+'</div>'+
-       '<div class="pn">'+o.n+'<em>건</em></div></div>';
+  h+='<div class="card"><div class="sth">이사 예정 문의</div>'+
+     '<div class="sts">이사일 기준</div><div class="plan4">';
+  plan.forEach(function(o){
+    h+='<div class="pcard'+(o.k===0?' now':'')+'">'+
+       '<div class="pm">'+o.name+'</div><div class="pn">'+o.n+'<em>건</em></div></div>';
   });
   h+='</div></div>';
 
-  /* ③ 채널별 표 */
+  /* ═══ ② 모집구분 — 세 달을 나란히. 건수 위, 비율 아래 ═══ */
+  var show=[];
+  plan.forEach(function(o){ if(o.k>=0) show.push(o); });   /* 이번달·다음달·다다음달 */
   var chset={};
-  months.forEach(function(o){ Object.keys(o.ch).forEach(function(k){ chset[k]=(chset[k]||0)+o.ch[k]; }); });
-  var chs=Object.keys(chset).sort(function(a,b){ return chset[b]-chset[a]; });
-  h+='<div class="card" style="overflow-x:auto"><div class="sth">어디서 들어왔나</div>'+
-     '<div class="sts">접수일 기준 · 최근 6개월</div><table class="mtab"><tr><th>채널</th>';
-  months.forEach(function(o){ h+='<th>'+o.name+'</th>'; });
-  h+='<th>합계</th></tr>';
-  chs.forEach(function(c){
-    h+='<tr><td class="m">'+esc(c)+'</td>';
-    months.forEach(function(o){ h+='<td>'+(o.ch[c]||'–')+'</td>'; });
-    h+='<td class="g">'+chset[c]+'</td></tr>';
-  });
-  h+='<tr class="base"><td class="m">합계</td>';
-  months.forEach(function(o){ h+='<td>'+o.n+'</td>'; });
-  var tot=0; months.forEach(function(o){ tot+=o.n; });
-  h+='<td>'+tot+'</td></tr></table></div>';
+  show.forEach(function(o){ Object.keys(o.ch).forEach(function(k){ chset[k]=(chset[k]||0)+o.ch[k]; }); });
+  var keys=Object.keys(chset).sort(function(a,b){ return chset[b]-chset[a]; });
+
+  h+='<div class="card"><div class="sth">모집구분별 · 이사 예정</div>'+
+     '<div class="sts">건수 아래는 그 달에서 차지하는 몫</div>';
+  if(!keys.length){
+    h+='<div class="soon">이사 예정 문의가 없습니다.</div>';
+  }else{
+    h+='<table class="ctab2"><tr><th>모집구분</th>';
+    show.forEach(function(o){ h+='<th>'+o.name+'</th>'; });
+    h+='</tr>';
+    keys.forEach(function(c){
+      h+='<tr><td class="nm">'+esc(c)+'</td>';
+      show.forEach(function(o){
+        var n=o.ch[c]||0;
+        if(!n){ h+='<td class="z">–</td>'; return; }
+        var pc=Math.round(n/o.n*100);
+        /* 표본이 적으면 비율이 튄다 — 흐리게 해서 알 수 있게 */
+        var thin=(o.n<10)?' thin':'';
+        h+='<td><b>'+n+'</b><i class="pc'+thin+'">('+pc+'%)</i></td>';
+      });
+      h+='</tr>';
+    });
+    h+='<tr class="sum"><td class="nm">합계</td>';
+    show.forEach(function(o){ h+='<td><b>'+o.n+'</b></td>'; });
+    h+='</tr></table>';
+    var few=show.filter(function(o){ return o.n>0 && o.n<10; });
+    if(few.length){
+      h+='<div class="sts" style="margin:10px 0 0">'+
+         few.map(function(o){return o.name;}).join(' · ')+
+         ' 은 아직 건수가 적어 몫이 크게 흔들립니다</div>';
+    }
+  }
+  h+='</div>';
+
+  /* ═══ ③ 월별 문의 — 접수일 기준. 곁가지이므로 아래로 ═══ */
+  var all=[], mx=0;
+  for(var i=11;i>=0;i--){
+    var f2=M(-i), t2=M(-i+1), n2=0;
+    QUOTE.forEach(function(r){
+      var d=parseD(findStamp(r));
+      if(d && d>=f2 && d<t2) n2++;
+    });
+    all.push({ name:lbl(f2), n:n2 });
+  }
+  var first=-1;
+  for(var k2=0;k2<all.length;k2++){ if(all[k2].n>0){ first=k2; break; } }
+  var months=(first<0)?[]:all.slice(first);
+  months.forEach(function(o){ if(o.n>mx) mx=o.n; });
+
+  h+='<div class="card"><div class="sth">월별 문의</div><div class="sts">접수일 기준 · 언제 문의가 들어왔나</div>';
+  if(!months.length){
+    h+='<div class="soon">아직 기록이 없습니다.</div>';
+  }else{
+    h+='<div class="hgraph">';
+    months.forEach(function(o){
+      var hh=mx? Math.round(o.n/mx*110):0;
+      h+='<div class="hgcol'+(o.n?'':' zero')+'"><div class="v">'+o.n+'</div>'+
+         '<div class="bar" style="height:'+hh+'px"></div></div>';
+    });
+    h+='</div><div class="hglbl">';
+    months.forEach(function(o){ h+='<div>'+o.name+'</div>'; });
+    h+='</div>';
+    if(months.length>=2){
+      var L=months[months.length-1], P=months[months.length-2];
+      h+='<div class="stnote">'+L.name+' '+L.n+'건'+dltHtml(L.n,P.n)+'</div>';
+    }
+  }
+  h+='</div>';
 
   box.innerHTML=h;
 }
