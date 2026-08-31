@@ -240,11 +240,15 @@
   .range{font-size:15px;font-weight:800;color:var(--navy);margin:0 2px 12px;letter-spacing:-.4px}
   .range b{color:var(--ac,var(--navy));margin-right:7px}
   .range span{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:-.2px}
+  .range .bs{margin-left:8px;padding:3px 9px;border-radius:999px;
+    background:var(--acBg,var(--navyBg));color:var(--ac,var(--navy));font-size:11.5px;font-weight:800}
 
   /* ═══ 기간 고르기 — 월·분기·반기·연도 ═══ */
   .pbar{margin:2px 0 12px}
-  .prow{display:flex;gap:5px;flex-wrap:wrap}
+  .prow{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
   .prow.sub{margin-top:6px}
+  .prow.bas{margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .plbl{font-size:12px;font-weight:800;color:var(--muted);margin-right:3px}
   .pchip{border:1px solid var(--line);background:#fff;color:var(--muted);
     border-radius:999px;padding:7px 15px;font-size:13.5px;font-weight:800;
     cursor:pointer;font-family:inherit;flex:0 0 auto;letter-spacing:-.3px}
@@ -352,7 +356,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v22 · 0831-1550</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v24 · 0831-2000</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -814,7 +818,7 @@ function renderReferStats(){
   var rows=introRows();
   var cCur=0, cPrv=0, cJi=0, cBu=0;
   rows.forEach(function(r){
-    var d=parseD(findStamp(r));
+    var d=basisD(r);
     if(d && d>=cur.from && d<cur.to){
       cCur++;
       if(r._main==='지인소개') cJi++; else cBu++;
@@ -1090,7 +1094,7 @@ function renderRvStat(){
   var full=Math.round(avg), s='';
   for(var i=0;i<5;i++) s+=(i<full?'★':'☆');
 
-  var h=periodBar()+periodTitle(cur);
+  var h=periodBar(false)+periodTitle(cur,false);
   h+='<div class="big"><span class="stars">'+s+'</span>'
       +'<span class="avg">'+(avg?avg.toFixed(1):'-')+'<small>평가 평균 점수</small></span></div>';
   h+='<div class="ch-title" style="margin:8px 0 2px">'+esc(cur.name)+' 평가 도착 '+mNow+
@@ -1282,6 +1286,17 @@ function loadQuote(){
    무엇을 고르든 「직전 같은 기간」과 견준다.
    ═══════════════════════════════════════════════ */
 var PERIOD = { unit:'month', back:0 };   /* back 0 = 이번, 1 = 직전 */
+/* ★ 무엇을 기준으로 셀지
+   접수일 — 이번 달 문의가 얼마나 들어왔나 (마케팅 성적)
+   이사일 — 그 달에 일이 얼마나 잡혔나 (일정·인력)
+   ERP 는 이사일 기준이므로, 이사일로 맞춰야 숫자를 견줄 수 있다. */
+var BASIS = 'in';   /* in = 접수일, move = 이사일 */
+
+/* 기준에 맞는 날짜를 뽑는다 */
+function basisD(r){
+  return (BASIS==='move') ? parseD(r['이사예정일']) : parseD(findStamp(r));
+}
+var BASIS_NAME = { in:'접수일', move:'이사일' };
 
 /* 고른 기간의 시작·끝·이름을 낸다 */
 function periodOf(unit, back){
@@ -1312,8 +1327,15 @@ function periodOf(unit, back){
 var UNITS=[['month','월'],['quarter','분기'],['half','반기'],['year','연도']];
 
 /* 기간 칩 두 줄을 그린다 — 위는 단위, 아래는 어느 구간 */
-function periodBar(id){
-  var h='<div class="pbar"><div class="prow">';
+function periodBar(withBasis){
+  var h='<div class="pbar">';
+  /* 기준 줄 — 후기 탭은 평가 도착일뿐이라 기준을 물을 게 없다 */
+  if(withBasis!==false){
+    h+='<div class="prow bas"><span class="plbl">기준</span>'+
+       '<button type="button" class="pchip sm'+(BASIS==='in'?' on':'')+'" data-basis="in">접수일</button>'+
+       '<button type="button" class="pchip sm'+(BASIS==='move'?' on':'')+'" data-basis="move">이사일</button></div>';
+  }
+  h+='<div class="prow">';
   UNITS.forEach(function(u){
     h+='<button type="button" class="pchip'+(PERIOD.unit===u[0]?' on':'')+
        '" data-punit="'+u[0]+'">'+u[1]+'</button>';
@@ -1331,16 +1353,19 @@ function periodBar(id){
 function ymd2(d){ return (d.getMonth()+1)+'/'+d.getDate(); }
 
 /* 「2026년 8월 · 8/1 ~ 8/31」 같은 줄 */
-function periodTitle(p){
+function periodTitle(p, showBasis){
   var last=new Date(p.to.getTime()-86400000);
-  return '<div class="range"><b>'+esc(p.name)+'</b><span>'+ymd2(p.from)+' ~ '+ymd2(last)+'</span></div>';
+  var bs = (showBasis===false) ? '' :
+    '<span class="bs">'+BASIS_NAME[BASIS]+' 기준</span>';
+  return '<div class="range"><b>'+esc(p.name)+'</b><span>'+ymd2(p.from)+' ~ '+ymd2(last)+'</span>'+bs+'</div>';
 }
 
 /* 기간 칩 눌렀을 때 — 네 탭 공통 */
 document.addEventListener('click',function(e){
   var t=e.target.closest?e.target.closest('.pchip'):null;
   if(!t) return;
-  if(t.dataset.punit){ PERIOD.unit=t.dataset.punit; PERIOD.back=0; }
+  if(t.dataset.basis){ BASIS=t.dataset.basis; }
+  else if(t.dataset.punit){ PERIOD.unit=t.dataset.punit; PERIOD.back=0; }
   else if(t.dataset.pback!==undefined){ PERIOD.back=Number(t.dataset.pback); }
   else return;
   try{ renderStats(); }catch(e2){}
@@ -1371,15 +1396,17 @@ function renderStats(){
   var prv=periodOf(PERIOD.unit,PERIOD.back+1);
   var cToday=0,cCur=0,cPrv=0,chMonth={};
   QUOTE.forEach(function(r){
-    var d=parseD(findStamp(r));
+    var d=basisD(r);
     if(!d) return;
-    if(d>=today) cToday++;
+    if(BASIS==='in' && d>=today) cToday++;
     if(d>=prv.from && d<prv.to) cPrv++;
     if(d>=cur.from && d<cur.to){ cCur++; var w=r._main||'기타'; chMonth[w]=(chMonth[w]||0)+1; }
   });
   var chs=Object.keys(chMonth).sort(function(a,b){return chMonth[b]-chMonth[a];});
   var h=periodBar()+periodTitle(cur)+'<div class="row1">';
-  h+='<div class="pill"><div class="n">'+cToday+'</div><div class="l">오늘</div></div>';
+  h+= (BASIS==='in')
+      ? '<div class="pill"><div class="n">'+cToday+'</div><div class="l">오늘 접수</div></div>'
+      : '<div class="pill"><div class="n">'+QUOTE.length+'</div><div class="l">모두</div></div>';
   h+='<div class="pill"><div class="n">'+cCur+dltHtml(cCur,cPrv)+'</div><div class="l">'+esc(cur.name)+'</div></div>';
   h+='<div class="pill"><div class="n">'+cPrv+'</div><div class="l">'+esc(prv.name)+'</div></div>';
   h+='</div>';
