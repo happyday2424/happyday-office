@@ -352,6 +352,9 @@
     letter-spacing:-1.5px;margin-top:4px}
   .pcard.now .pn{color:#fff}
   .pcard .pn em{font-style:normal;font-size:14px;font-weight:800;margin-left:2px}
+  /* 같은 손님이 두 번 넣은 건 */
+  .dupb{background:var(--coralBg);color:var(--coral);border-radius:999px;
+    padding:3px 9px;font-size:11.5px;font-weight:800;letter-spacing:-.2px}
   .dlt{display:inline-block;margin-left:5px;font-size:11.5px;font-weight:800;color:var(--muted);
     letter-spacing:-.2px;white-space:nowrap;vertical-align:middle}
   .dlt.up{color:var(--teal)}
@@ -408,7 +411,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v29 · 0831-2050</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v30 · 0831-2100</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -1328,6 +1331,7 @@ function loadQuote(){
     rememberKey(KEY);
     QUOTE=res.rows||[];
     QUOTE.forEach(function(r){ var o=gatherOf(r); r._main=o.main; r._detail=o.detail; });
+    buildDup();
     buildSubtabs();
     renderStats();
     renderQuote();
@@ -1353,6 +1357,38 @@ var STAT_TRIED = 0;   /* 통계 탭에서 자료를 한 번만 부르게 */
 var BASIS = 'in';   /* in = 접수일, move = 이사일 */
 
 /* 기준에 맞는 날짜를 뽑는다 */
+/* ═══ 중복 접수 묶기 ═══
+   손님이 사진을 더 보내려고 다시 넣으면 두 건이 된다.
+   연락처·이사예정일·출발지가 모두 같으면 한 사람으로 본다.
+   ★ 원본은 지우지 않는다. 셀 때만 묶고, 목록에는 배지로 알린다. */
+function dupKey(r){
+  var tel=String(r['연락처']||'').replace(/[^0-9]/g,'');
+  if(!tel) return '';
+  var dt=String(r['이사예정일']||'').trim();
+  var ad=String(r['출발지']||'').replace(/[\s()（）]/g,'').slice(0,30);
+  return tel+'|'+dt+'|'+ad;
+}
+/* 같은 열쇠가 몇 건인지 미리 세어 둔다 */
+var DUPMAP={};
+function buildDup(){
+  DUPMAP={};
+  QUOTE.forEach(function(r){
+    var k=dupKey(r); if(!k) return;
+    DUPMAP[k]=(DUPMAP[k]||0)+1;
+  });
+}
+/* 셀 때 쓰는 목록 — 중복은 첫 건만 남긴다 */
+function uniqQuote(){
+  var seen={}, out=[];
+  QUOTE.forEach(function(r){
+    var k=dupKey(r);
+    if(!k){ out.push(r); return; }
+    if(seen[k]) return;
+    seen[k]=1; out.push(r);
+  });
+  return out;
+}
+
 function basisD(r){
   return (BASIS==='move') ? parseD(r['이사예정일']) : parseD(findStamp(r));
 }
@@ -1474,13 +1510,14 @@ function statBody(){
   var now=new Date(), y=now.getFullYear(), m=now.getMonth();
   var M=function(k){ return new Date(y, m+k, 1); };
   var lbl=function(d){ return (d.getMonth()+1)+'월'; };
+  var UQ=uniqQuote();   /* 중복 접수를 한 건으로 묶은 목록 */
 
   /* ═══ ① 이사 예정 문의 — 본체.
      「9월에 이사할 분이 몇 명 문의했나」가 매일 보는 숫자다 ═══ */
   var plan=[];
   for(var j=-1;j<=2;j++){
     var f=M(j), t=M(j+1), n=0, ch={};
-    QUOTE.forEach(function(r){
+    UQ.forEach(function(r){
       var d=parseD(r['이사예정일']);
       if(d && d>=f && d<t){ n++; var w=r._main||'기타'; ch[w]=(ch[w]||0)+1; }
     });
@@ -1538,7 +1575,7 @@ function statBody(){
   var all=[], mx=0;
   for(var i=11;i>=0;i--){
     var f2=M(-i), t2=M(-i+1), n2=0;
-    QUOTE.forEach(function(r){
+    UQ.forEach(function(r){
       var d=parseD(findStamp(r));
       if(d && d>=f2 && d<t2) n2++;
     });
@@ -1580,7 +1617,7 @@ function renderStats(){
   var cur=periodOf(PERIOD.unit,PERIOD.back);
   var prv=periodOf(PERIOD.unit,PERIOD.back+1);
   var cToday=0,cCur=0,cPrv=0,chMonth={};
-  QUOTE.forEach(function(r){
+  uniqQuote().forEach(function(r){
     var d=basisD(r);
     if(!d) return;
     if(BASIS==='in' && d>=today) cToday++;
@@ -1754,6 +1791,10 @@ function renderQuote(){
     h+='<span class="mode'+(대면?'':' f')+'">'+esc(mode||'—')+'</span>';
     h+='<span class="tel">'+esc(g('연락처'))+'</span>';
     h+='<span class="when">'+esc(fmtStamp(g('접수시각')))+'</span>';
+    /* 같은 손님이 두 번 넣은 건 — 지우지 않고 알리기만 한다.
+       사진을 나눠 보냈을 수 있으므로 대표가 보고 판단한다 */
+    var dk=dupKey(r), dn=dk?(DUPMAP[dk]||1):1;
+    if(dn>1) h+='<span class="dupb">같은 손님 '+dn+'건</span>';
     h+='</div>';
 
     h+='<div class="move">이사 '+esc(fmtDate(g('이사예정일'))||'미정')+(g('날짜조절가능')==='예'?' (조절가능)':'')+(g('이사종류')?' · '+esc(g('이사종류')):'')+'</div>';
