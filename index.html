@@ -423,7 +423,14 @@
     .mt td.nm{padding-left:8px;padding-right:11px}
   }
   .mnote{font-size:14px;color:var(--muted);font-weight:700;margin:14px 0 7px;
-    padding-top:13px;border-top:1px solid var(--line)}
+    padding-top:13px;border-top:1px solid var(--line);line-height:1.75}
+  .mnote b{color:var(--navy)}
+  .mt th em{display:block;font-style:normal;font-size:13.5px;font-weight:700;
+    opacity:.75;margin-top:2px}
+  .mt th.none{color:var(--muted)}
+  .mt td.none{color:#C3CAD6}
+  .mt td.zero{color:#C3CAD6}
+  .mt td.now.zero{color:var(--navy)}
   .myms{display:flex;gap:6px;flex-wrap:wrap}
   .myms .ymbtn{border:1px solid var(--line);background:#fff;border-radius:999px;
     padding:9px 14px;font-size:15px;font-weight:800;color:var(--navy);min-height:44px}
@@ -448,7 +455,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v31 · 0902-2340</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v32 · 0902-2350</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -694,6 +701,28 @@ function busyOff(){
   if(b) b.parentNode.removeChild(b);
 }
 
+/* ★v32 — 주소에 ?demo=1 이 붙었을 때만 가짜 자료로 그린다.
+   올리기 전에 이 파일 그대로 미리보기로 확인할 수 있게 하는 장치다.
+   ?demo=1 이 없으면 절대 뜨지 않는다. */
+var DEMO = /[?&]demo=1/.test(location.search);
+function demoMonth(){
+  var now=new Date(), out=[];
+  var base=[[180,92,48,118,84,71,33,19],[205,108,56,134,96,80,38,22],
+            [232,121,63,152,108,92,41,25],[261,138,72,171,122,104,46,28]];
+  for(var i=0;i<4;i++){
+    var d=new Date(now.getFullYear(), now.getMonth()-3+i, 1);
+    var ym=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);
+    var v=base[i], home=v[0];
+    out.push({'달':ym,'홈 열림':v[0],'견적 신청하기':v[1],'견적 전송 누름':v[2],
+      '왜 청소가 공짜지':v[3],'7 · 5':v[4],'고객 후기':v[5],'회사 소개':v[6],'지인에게':v[7],
+      '청소 전환율(%)':Math.round(v[3]/home*1000)/10,
+      '7·5 전환율(%)':Math.round(v[4]/home*1000)/10,
+      '후기 전환율(%)':Math.round(v[5]/home*1000)/10,
+      '아무것도 안 본 전환율(%)':Math.round((home*0.16)/home*1000)/10});
+  }
+  return out.reverse();   /* 시트는 최신이 위 */
+}
+
 function loadHit(){
   var ck=hitKey(), had=HIT_CACHE[ck];
   if(had){ document.getElementById('hitBody').innerHTML=had; }
@@ -709,6 +738,7 @@ function loadHit(){
       return;
     }
     setHitRange('달마다 한 줄씩 · 지우지 않고 계속 쌓입니다');
+    if(DEMO){ renderMonth(demoMonth()); hitSave(); return; }
     fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logMonth'+'&_='+Date.now())
       .then(function(r){return r.json();})
       .then(function(res){ renderMonth(res && res.ok ? res.rows : null); hitSave(); })
@@ -727,7 +757,7 @@ var MON_N = 4;          /* 나란히 볼 달 수 */
 
 /* 시트 열 이름(왼쪽)과 표에 보일 이름(오른쪽). 시트 이름은 바꾸지 않는다 */
 var MCOLS=[
-  {k:'홈 열림',         l:['홈','열림']},
+  {k:'홈 열림',         l:['홈열림']},
   {k:'견적 신청하기',   l:['견적','신청']},
   {k:'견적 전송 누름',  l:['전송','누름']},
   {k:'왜 청소가 공짜지',l:['청소','공짜']},
@@ -775,11 +805,6 @@ function renderMonth(rows){
       '앱스크립트에 접속기록 코드가 들어갔는지 확인해 주세요.</div>';
     return;
   }
-  if(!rows.length){
-    el.innerHTML='<div class="soon"><div class="big">아직 월별 기록이 없습니다</div>'+
-      '앱스크립트에서 월별반응_갱신 을 한 번 실행하시면 이번 달부터 쌓입니다.</div>';
-    return;
-  }
   /* 시트가 달을 날짜로 바꿔놨어도 2026-08 모양으로 되돌린다 */
   function ymTxt(v){
     var t=String(v||'').trim();
@@ -789,49 +814,86 @@ function renderMonth(rows){
     if(!isNaN(d.getTime())) return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);
     return t;
   }
-  /* 들어온 순서는 최신이 위. 표는 왼쪽이 옛 달이라 뒤집는다 */
-  var all=rows.slice().reverse();
-  var show=all.slice(-MON_N);
-  var first=all.length-show.length;
+  /* ★v32 — 자료가 있든 없든 최근 넉 달 자리를 만든다. 없는 달은 0 */
+  var now=new Date();
+  var thisYm=now.getFullYear()+'-'+('0'+(now.getMonth()+1)).slice(-2);
+  var by={}; rows.forEach(function(r){ by[ymTxt(r['달'])]=r; });
+
+  var slots=[];
+  for(var i=MON_N-1;i>=0;i--){
+    var d=new Date(now.getFullYear(), now.getMonth()-i, 1);
+    var ym=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);
+    slots.push({ym:ym, r:by[ym]||null, has:!!by[ym]});
+  }
+  /* 넉 달보다 앞선 달도 시트에 있으면 버튼으로 내려 둔다 */
+  var older=Object.keys(by).filter(function(k){
+    return slots.every(function(s2){ return s2.ym!==k; });
+  }).sort();
+
+  /* 값 읽기 — 없는 달은 0 */
+  function val(slot,key){
+    if(!slot.has) return 0;
+    var v=slot.r[key];
+    if(v===''||v==null) return null;
+    v=Number(v);
+    return isNaN(v)?null:v;
+  }
 
   var h='<div class="card">'+
     '<div class="sth">달마다 몇 명이 눌렀나</div>'+
-    '<div class="sts">사람 수 기준 · 오른쪽이 최신 달 · 숫자 아래는 전달보다 는 사람 수</div>';
+    '<div class="sts">사람 수 기준 · 오른쪽이 최신 달</div>';
 
   h+='<table class="mt"><tr><th>항목</th>';
-  show.forEach(function(r,i){
-    var ym=ymTxt(r['달']);
-    h+='<th class="'+(i===show.length-1?'now':'')+'">'+
-       esc(ym.slice(5).replace(/^0/,''))+'월</th>';
+  slots.forEach(function(s2){
+    var isNow=(s2.ym===thisYm);
+    h+='<th class="'+(isNow?'now':'')+(s2.has?'':' none')+'">'+
+       Number(s2.ym.slice(5))+'월'+
+       (isNow?'<em>진행 중</em>':(s2.has?'':'<em>기록 없음</em>'))+'</th>';
   });
   h+='</tr>';
 
   MCOLS.forEach(function(o){
     h+='<tr><td class="nm">'+mname(o)+'</td>';
-    show.forEach(function(r,i){
-      var v=(r[o.k]===''||r[o.k]==null)?null:Number(r[o.k]);
-      var pv=(first+i>0)?Number(all[first+i-1][o.k]):null;
-      h+='<td class="'+(i===show.length-1?'now':'')+'">'+
-         ((v===null||isNaN(v))?'–':(v+mdlt(v,pv)))+'</td>';
+    slots.forEach(function(s2,i){
+      var isNow=(s2.ym===thisYm);
+      var v=val(s2,o.k);
+      var pv=(i>0)?val(slots[i-1],o.k):null;
+      var cell=(v===null)?'–':String(v);
+      /* ★ 진행 중인 달에는 증감을 붙이지 않는다. 아직 안 끝났다 */
+      if(!isNow && v!==null && pv!==null && slots[i-1].has) cell+=mdlt(v,pv);
+      h+='<td class="'+(isNow?'now':'')+(s2.has?'':' none')+(v===0?' zero':'')+'">'+cell+'</td>';
     });
     h+='</tr>';
   });
   MRATES.forEach(function(o,ri){
     h+='<tr class="pc'+(ri===0?' gap':'')+'"><td class="nm">'+mname(o)+'</td>';
-    show.forEach(function(r,i){
-      var v=r[o.k];
-      h+='<td class="'+(ri===3?'dim':'')+(i===show.length-1?' now':'')+'">'+
+    slots.forEach(function(s2){
+      var isNow=(s2.ym===thisYm);
+      var v=s2.has?s2.r[o.k]:null;
+      h+='<td class="'+(ri===3?'dim':'')+(isNow?' now':'')+(s2.has?'':' none')+'">'+
          ((v===''||v==null)?'–':(v+'%'))+'</td>';
     });
     h+='</tr>';
   });
   h+='</table>';
 
-  if(all.length>show.length){
-    h+='<div class="mnote">앞선 '+(all.length-show.length)+'달은 달을 눌러 보십시오</div>';
-    h+='<div class="myms">';
-    all.slice(0,first).forEach(function(r){
-      var ym=ymTxt(r['달']);
+  /* 무엇이 왜 비어 있는지 적는다 */
+  var msg=[];
+  var none=slots.filter(function(s2){ return !s2.has; });
+  if(none.length){
+    msg.push('<b>'+none.map(function(s2){return Number(s2.ym.slice(5))+'월';}).join(' · ')+
+             '</b>은 기록이 없어 0으로 둡니다. 견적링크 접속기록은 <b>2026년 8월부터</b> 쌓입니다.');
+  }
+  var cur=slots[slots.length-1];
+  if(cur && cur.ym===thisYm){
+    msg.push('<b>'+Number(thisYm.slice(5))+'월은 아직 진행 중</b>이라 지난달과 견주지 않습니다. '+
+             '달이 끝나야 증감이 붙습니다.');
+  }
+  if(msg.length) h+='<div class="mnote">'+msg.join('<br>')+'</div>';
+
+  if(older.length){
+    h+='<div class="mnote">앞선 '+older.length+'달은 달을 눌러 보십시오</div><div class="myms">';
+    older.forEach(function(ym){
       h+='<button type="button" class="ymbtn" data-ym="'+esc(ym)+'">'+esc(ym)+'</button>';
     });
     h+='</div>';
