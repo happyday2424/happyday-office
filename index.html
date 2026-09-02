@@ -15,29 +15,29 @@
     --line:#DDE2EA; --muted:#7A8598; --bg:#F6F8FB;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{margin:0;background:var(--bg);color:var(--navy);font-size:16px;
+  body{margin:0;background:var(--bg);color:var(--navy);font-size:17px;
     font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
     padding:0 0 40px}
   .top{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;
     padding:12px 14px 0}
-  .top h1{margin:0 0 10px;font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
-  .top h1 .r{margin-left:auto;font-size:11.5px;font-weight:600;opacity:.7}
+  .top h1{margin:0 0 10px;font-size:19px;font-weight:800;display:flex;align-items:center;gap:8px}
+  .top h1 .r{margin-left:auto;font-size:13.5px;font-weight:600;opacity:.7}
   /* 탭 — 폭이 모자라면 저절로 아랫줄로. 옆으로 미는 스크롤을 쓰지 않는다.
      메뉴가 여덟 개, 열 개로 늘어도 전부 한눈에 보인다. */
   .tabs{display:flex;gap:4px;flex-wrap:wrap;overflow:visible;padding-bottom:0}
   .tab{border:none;background:transparent;color:rgba(255,255,255,.6);
-    padding:10px 14px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;
+    padding:10px 14px;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;
     white-space:nowrap;border-bottom:3px solid transparent;flex:0 0 auto}
   .tab.on{color:#fff;border-bottom-color:#7DD3FC}
   @media (max-width:560px){
     .tabs{gap:2px}
     /* 폭을 고정해 왼쪽부터 채운다. 마지막 한 개가 남는 폭을 먹지 않게 */
-    .tab{flex:0 0 calc(25% - 2px);padding:9px 2px;font-size:13.5px;text-align:center}
-    .tab .b{margin-left:3px;font-size:10px;min-width:14px;padding:0 4px}
+    .tab{flex:0 0 calc(25% - 2px);padding:9px 2px;font-size:16.5px;text-align:center}
+    .tab .b{margin-left:3px;font-size:13.5px;min-width:14px;padding:0 4px}
   }
-  @media (max-width:340px){ .tab{flex:0 0 calc(33.333% - 2px);font-size:13px} }
+  @media (max-width:340px){ .tab{flex:0 0 calc(33.333% - 2px);font-size:15px} }
   .tab .b{display:inline-block;min-width:17px;padding:0 5px;margin-left:5px;
-    background:rgba(255,255,255,.2);border-radius:9px;font-size:11px;line-height:17px;text-align:center}
+    background:rgba(255,255,255,.2);border-radius:9px;font-size:13.5px;line-height:17px;text-align:center}
   .tab.on .b{background:#7DD3FC;color:var(--navy)}
 
   .wrap{max-width:640px;margin:0 auto;padding:14px 12px 0}
@@ -47,15 +47,15 @@
     padding:16px 16px 14px;margin-bottom:12px}
   .stats .row1{display:flex;gap:8px;margin-bottom:12px}
   .stats .pill{flex:1;background:var(--acBg,var(--navyBg));border-radius:11px;padding:11px 8px;text-align:center}
-  .stats .pill .n{font-size:22px;font-weight:900;letter-spacing:-.5px;color:var(--ac,var(--navy))}
-  .stats .pill .l{font-size:12.5px;color:var(--muted);margin-top:4px;font-weight:800}
-  .stats .ch-title{font-size:12px;color:var(--muted);font-weight:800;margin-bottom:7px}
+  .stats .pill .n{font-size:26px;font-weight:900;letter-spacing:-.5px;color:var(--ac,var(--navy))}
+  .stats .pill .l{font-size:14px;color:var(--muted);margin-top:4px;font-weight:800}
+  .stats .ch-title{font-size:14px;color:var(--muted);font-weight:800;margin-bottom:7px}
   .stats .chs{display:flex;flex-wrap:wrap;gap:6px}
-  .stats .ch{background:var(--acBg,var(--navyBg));color:var(--navy);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700}
+  .stats .ch{background:var(--acBg,var(--navyBg));color:var(--navy);border-radius:999px;padding:5px 11px;font-size:14px;font-weight:700}
   .stats .ch b{color:var(--ac,var(--teal));margin-left:3px}
   .searchbar{position:relative;margin-bottom:10px}
   /* 검색창 — 회색 바탕. 흰 카드(보는 것)와 확실히 갈린다 */
-  .searchbar input{width:100%;box-sizing:border-box;font-size:16px;padding:13px 40px 13px 14px;
+  .searchbar input{width:100%;box-sizing:border-box;font-size:17px;padding:13px 40px 13px 14px;
     border-radius:11px;border:1.5px solid transparent;outline:none;font-family:inherit;
     background:#E9EDF3;color:var(--navy);transition:background .15s,border-color .15s}
   .searchbar input::placeholder{color:#8B95A6}
@@ -89,54 +89,54 @@
   .searchbar input:focus{border-color:var(--navy)}
   .qclear{position:absolute;right:8px;top:50%;transform:translateY(-50%);
     border:none;background:var(--navyBg);color:var(--muted);border-radius:999px;
-    width:26px;height:26px;font-size:13px;cursor:pointer;font-family:inherit}
+    width:26px;height:26px;font-size:15px;cursor:pointer;font-family:inherit}
   .subtabs{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
   .st{border:1px solid var(--line);background:#fff;color:var(--muted);
-    border-radius:999px;padding:8px 15px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+    border-radius:999px;padding:8px 15px;font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit}
   .st.on{background:var(--ac,var(--teal));color:#fff;border-color:var(--ac,var(--teal))}
   /* ★v2 : 2단 상세 칩 (소개자·부동산 등) */
   .subtabs2{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;
     background:var(--navyBg);border-radius:11px;padding:10px 11px}
-  .subtabs2 .lbl2{width:100%;font-size:12.5px;font-weight:800;color:var(--muted);margin-bottom:2px}
+  .subtabs2 .lbl2{width:100%;font-size:14px;font-weight:800;color:var(--muted);margin-bottom:2px}
   .st2{border:1px solid #C9D3E4;background:#fff;color:var(--navy);
-    border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}
+    border-radius:999px;padding:7px 13px;font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit}
   .st2.on{background:var(--ac,var(--teal));color:#fff;border-color:var(--ac,var(--teal))}
 
   .bar{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-  .bar .cnt{font-size:14px;color:var(--muted);font-weight:700}
+  .bar .cnt{font-size:16.5px;color:var(--muted);font-weight:700}
   .btn-refresh{margin-left:auto;border:1px solid var(--line);background:#fff;color:var(--navy);
-    border-radius:8px;padding:9px 15px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;
+    border-radius:8px;padding:9px 15px;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;
     display:inline-flex;align-items:center;gap:5px}
 
   .card{background:#fff;border:1px solid var(--line);border-radius:14px;
     padding:17px;margin-bottom:13px}
   .chead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
-  .way{border-radius:7px;padding:4px 11px;font-size:13px;font-weight:800}
-  .mode{border-radius:7px;padding:4px 11px;font-size:13px;font-weight:800;
+  .way{border-radius:7px;padding:4px 11px;font-size:15px;font-weight:800}
+  .mode{border-radius:7px;padding:4px 11px;font-size:15px;font-weight:800;
     background:var(--navyBg);color:var(--navy)}
   .mode.f{background:var(--coralBg);color:var(--coral)}
-  .tel{font-size:17px;font-weight:800}
-  .when{margin-left:auto;font-size:13px;color:var(--muted)}
+  .tel{font-size:18px;font-weight:800}
+  .when{margin-left:auto;font-size:15px;color:var(--muted)}
 
-  .move{font-size:16px;font-weight:800;margin:9px 0 3px;color:var(--navy)}
-  .route{font-size:15px;line-height:1.65;color:#33415A}
+  .move{font-size:17px;font-weight:800;margin:9px 0 3px;color:var(--navy)}
+  .route{font-size:17px;line-height:1.65;color:#33415A}
   .route b{color:var(--navy)}
-  .cond{font-size:12px;color:var(--teal);font-weight:700}
+  .cond{font-size:14px;color:var(--teal);font-weight:700}
   .rows{margin-top:9px;display:grid;gap:3px}
-  .kv{font-size:14.5px;line-height:1.55;color:#33415A}
+  .kv{font-size:17px;line-height:1.55;color:#33415A}
   .kv .k{color:var(--muted);font-weight:700;margin-right:5px}
   /* ★v2 : 소개자 줄 */
   .refline{margin-top:9px;background:var(--purpleBg);color:#4B3690;border-radius:8px;
-    padding:10px 13px;font-size:14.5px;line-height:1.5;font-weight:700}
+    padding:10px 13px;font-size:17px;line-height:1.5;font-weight:700}
   .warn{margin-top:9px;background:var(--coralBg);color:#993C1D;border-radius:8px;
-    padding:10px 13px;font-size:14px;line-height:1.5}
+    padding:10px 13px;font-size:16.5px;line-height:1.5}
   .note{margin-top:9px;background:var(--amberBg);color:#8A5F0B;border-radius:8px;
-    padding:10px 13px;font-size:14.5px;line-height:1.55}
-  .photo{margin-top:9px;font-size:14.5px}
+    padding:10px 13px;font-size:17px;line-height:1.55}
+  .photo{margin-top:9px;font-size:17px}
   .photo a{color:var(--blue);font-weight:700;text-decoration:none}
 
   .acts{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap}
-  .a{border:none;border-radius:9px;padding:12px 14px;font-size:15px;font-weight:800;
+  .a{border:none;border-radius:9px;padding:12px 14px;font-size:17px;font-weight:800;
     cursor:pointer;font-family:inherit}
   .a.main{background:var(--navy);color:#fff;flex:1;min-width:150px}
   .a.tel{background:var(--teal);color:#fff}
@@ -146,76 +146,76 @@
   .ch.st-wait{background:#FDF3E0;color:#8A5F0B}
   .ch.st-done{background:#E6F5F1;color:#0F6E56}
   .chips{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
-  .chips .ch{border-radius:7px;padding:4px 11px;font-size:13px;font-weight:800}
-  .ph{font-size:16px;font-weight:800}
+  .chips .ch{border-radius:7px;padding:4px 11px;font-size:15px;font-weight:800}
+  .ph{font-size:17px;font-weight:800}
 
   .chips2{margin-top:8px;display:flex;gap:5px;flex-wrap:wrap}
   .cc{border:1px solid var(--line);background:#fff;color:var(--muted);
-    border-radius:8px;padding:9px 13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+    border-radius:8px;padding:9px 13px;font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit}
   .cc:active,.cc.copied{background:var(--tealBg);color:#0F6E56;border-color:var(--teal)}
 
   /* ★v2 : 소개 대장 */
   .ledger{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-bottom:13px}
-  .ledger h3{margin:0 0 11px;font-size:15.5px;font-weight:800}
+  .ledger h3{margin:0 0 11px;font-size:17px;font-weight:800}
   .lrow{display:flex;align-items:center;gap:9px;padding:11px 0;border-bottom:1px solid #EEF1F5}
   .lrow:last-child{border-bottom:none}
-  .lrow .nm{font-weight:800;font-size:15.5px}
-  .lrow .sub{font-size:13px;color:var(--muted);font-weight:700;margin-top:2px}
+  .lrow .nm{font-weight:800;font-size:17px}
+  .lrow .sub{font-size:15px;color:var(--muted);font-weight:700;margin-top:2px}
   .lrow .cn{margin-left:auto;background:var(--purpleBg);color:#4B3690;border-radius:999px;
-    padding:6px 13px;font-size:13.5px;font-weight:800;white-space:nowrap}
+    padding:6px 13px;font-size:16.5px;font-weight:800;white-space:nowrap}
 
   /* ★v2 : 후기 */
   /* 통계 상자 — 네 탭 모두 같은 모양(흰 카드). 상단바와 붙어 보이지 않게 */
   .rvstat{background:#fff;color:var(--navy);border:1px solid var(--line);border-radius:14px;
     padding:16px 16px 14px;margin-bottom:12px;display:none}
   .rvstat .big{display:flex;align-items:baseline;gap:10px;margin-bottom:11px}
-  .rvstat .stars{color:#E3B34A;font-size:23px;letter-spacing:2px}
-  .rvstat .avg{font-size:30px;font-weight:900;letter-spacing:-1px;color:var(--ac,var(--navy))}
-  .rvstat .avg small{font-size:14px;font-weight:700;color:var(--muted);margin-left:4px}
+  .rvstat .stars{color:#E3B34A;font-size:26px;letter-spacing:2px}
+  .rvstat .avg{font-size:34px;font-weight:900;letter-spacing:-1px;color:var(--ac,var(--navy))}
+  .rvstat .avg small{font-size:16.5px;font-weight:700;color:var(--muted);margin-left:4px}
   .rvstat .row{display:flex;flex-wrap:wrap;gap:7px}
   .rvstat .cell.clickable{cursor:pointer;transition:transform .1s,box-shadow .1s}
   .rvstat .cell.clickable:active{transform:scale(.96)}
   .rvstat .cell.picked{outline:2px solid var(--teal);outline-offset:1px}
   .rvstat .cell{background:var(--acBg,var(--navyBg));border-radius:999px;padding:8px 14px;
-    font-size:13.5px;font-weight:800;color:var(--navy)}
-  .rvstat .cell b{color:var(--ac,var(--teal));margin-left:5px;font-size:14.5px}
+    font-size:16.5px;font-weight:800;color:var(--navy)}
+  .rvstat .cell b{color:var(--ac,var(--teal));margin-left:5px;font-size:17px}
   .rvstat .cell.warn{background:var(--coralBg);color:var(--coral)}
-  .rvstat .cell.warn b{color:var(--coral);font-size:15px}
+  .rvstat .cell.warn b{color:var(--coral);font-size:17px}
   .rv{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-bottom:10px}
   .rv .rvh{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:7px}
-  .rv .src{border-radius:7px;padding:4px 10px;font-size:12.5px;font-weight:900}
+  .rv .src{border-radius:7px;padding:4px 10px;font-size:14px;font-weight:900}
   .rv .src.sg{background:#EDE9FE;color:#5B21B6}
   .rv .src.nv{background:#E3F5E6;color:#15803D}
   .rv .src.kk{background:#FEF6D9;color:#8A6A12}
   .rv .src.dr{background:var(--tealBg);color:#0F766E}
-  .rv .dt{background:var(--navyBg);color:var(--muted);border-radius:7px;padding:4px 10px;font-size:12.5px;font-weight:700}
-  .rv .stars{color:#E3B34A;font-size:14px;letter-spacing:2px}
+  .rv .dt{background:var(--navyBg);color:var(--muted);border-radius:7px;padding:4px 10px;font-size:14px;font-weight:700}
+  .rv .stars{color:#E3B34A;font-size:16.5px;letter-spacing:2px}
   .rv .meta{background:var(--bg);border-radius:9px;padding:10px 12px;margin-bottom:9px;
-    display:grid;gap:4px;font-size:13.5px;color:#33415A}
+    display:grid;gap:4px;font-size:16.5px;color:#33415A}
   .rv .meta .mk{display:inline-block;min-width:56px;color:var(--muted);font-weight:800;margin-right:6px}
   .rv .meta i{color:#B6C0CC;font-style:normal}
   .rv .meta a{color:var(--blue);font-weight:800;text-decoration:none}
-  .rv .asis{color:var(--coral);font-weight:800;font-size:12.5px}
-  .rv .rtaghead{font-size:12.5px;font-weight:800;color:var(--muted);margin-top:10px}
+  .rv .asis{color:var(--coral);font-weight:800;font-size:14px}
+  .rv .rtaghead{font-size:14px;font-weight:800;color:var(--muted);margin-top:10px}
   .rv .scores{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
   .rv .sc{display:flex;align-items:center;gap:7px;background:var(--tealBg);border-radius:8px;padding:7px 10px}
-  .rv .sc .sn{flex:1;min-width:0;font-size:13px;font-weight:800;color:#0F6E56}
-  .rv .sc .sv{font-size:15px;font-weight:900;color:var(--navy)}
+  .rv .sc .sn{flex:1;min-width:0;font-size:15px;font-weight:800;color:#0F6E56}
+  .rv .sc .sv{font-size:17px;font-weight:900;color:var(--navy)}
   .rv .rtags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
   .rv .rtags span{background:var(--navyBg);color:var(--navy);border-radius:7px;padding:5px 9px;
-    font-size:12.5px;font-weight:800}
-  .rv .tx{font-size:14.5px;line-height:1.65;color:#33415A}
-  .rv .who{font-size:13px;color:var(--muted);font-weight:700;margin-top:7px}
+    font-size:14px;font-weight:800}
+  .rv .tx{font-size:17px;line-height:1.65;color:#33415A}
+  .rv .who{font-size:15px;color:var(--muted);font-weight:700;margin-top:7px}
   .rv.off{background:#F3F5F8;border:1px solid #E4C7BE;border-left:6px solid var(--coral);position:relative}
   .rv.off .tx,.rv.off .stars,.rv.off .who,.rv.off .src{filter:grayscale(1);opacity:.5}
   .rv.off .offbadge{display:inline-block;background:var(--coral);color:#fff;border-radius:7px;
-    padding:5px 11px;font-size:13px;font-weight:900}
+    padding:5px 11px;font-size:15px;font-weight:900}
   .rv .onbadge{display:inline-block;background:var(--teal);color:#fff;border-radius:7px;
-    padding:5px 11px;font-size:13px;font-weight:900}
+    padding:5px 11px;font-size:15px;font-weight:900}
 
   .empty{text-align:center;padding:50px 20px;color:var(--muted)}
-  .empty .big{font-size:15px;font-weight:800;margin-bottom:6px;color:var(--navy)}
-  .loading{text-align:center;padding:50px 20px;color:var(--muted);font-size:13px}
+  .empty .big{font-size:17px;font-weight:800;margin-bottom:6px;color:var(--navy)}
+  .loading{text-align:center;padding:50px 20px;color:var(--muted);font-size:15px}
   .soon{text-align:center;padding:44px 20px;color:var(--muted)}
 
   /* ═══ 탭마다 성격을 주는 색 — 왼쪽 4px 띠와 숫자에만 쓴다
@@ -238,65 +238,65 @@
     margin:4px 0 8px;text-align:left}
   /* 어느 날짜를 보고 있는지 항상 적는다 — 칩만 있으면 언제인지 모른다 */
   /* 어느 기간을 보고 있는지 — 작으면 안 읽힌다 */
-  .range{font-size:15px;font-weight:800;color:var(--navy);margin:0 2px 12px;letter-spacing:-.4px}
+  .range{font-size:17px;font-weight:800;color:var(--navy);margin:0 2px 12px;letter-spacing:-.4px}
   .range b{color:var(--ac,var(--navy));margin-right:7px}
-  .range span{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:-.2px}
+  .range span{font-size:15px;font-weight:700;color:var(--muted);letter-spacing:-.2px}
   .range .bs{margin-left:8px;padding:3px 9px;border-radius:999px;
-    background:var(--acBg,var(--navyBg));color:var(--ac,var(--navy));font-size:11.5px;font-weight:800}
+    background:var(--acBg,var(--navyBg));color:var(--ac,var(--navy));font-size:13.5px;font-weight:800}
 
   /* ═══ 기간 고르기 — 월·분기·반기·연도 ═══ */
   .pbar{margin:2px 0 12px}
   .prow{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
   .prow.sub{margin-top:6px}
   .prow.bas{margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line)}
-  .plbl{font-size:12px;font-weight:800;color:var(--muted);margin-right:3px}
+  .plbl{font-size:14px;font-weight:800;color:var(--muted);margin-right:3px}
   .pchip{border:1px solid var(--line);background:#fff;color:var(--muted);
-    border-radius:999px;padding:7px 15px;font-size:13.5px;font-weight:800;
+    border-radius:999px;padding:7px 15px;font-size:16.5px;font-weight:800;
     cursor:pointer;font-family:inherit;flex:0 0 auto;letter-spacing:-.3px}
   .pchip.on{background:var(--ac,var(--navy));border-color:var(--ac,var(--navy));color:#fff}
-  .pchip.sm{padding:6px 12px;font-size:12.5px;font-weight:700}
+  .pchip.sm{padding:6px 12px;font-size:14px;font-weight:700}
   .pchip.sm.on{background:var(--acBg,var(--navyBg));border-color:var(--ac,var(--navy));
     color:var(--ac,var(--navy))}
   @media (max-width:480px){
     .prow{gap:4px}
-    .pchip{padding:7px 11px;font-size:12.5px}
-    .pchip.sm{padding:6px 9px;font-size:12px}
+    .pchip{padding:7px 11px;font-size:14px}
+    .pchip.sm{padding:6px 9px;font-size:14px}
   }
   /* 출처 칩 — 기간 칩보다 한 단계 작게. 무엇이 상위인지 보이게 */
   #hitFrom{margin:0 0 8px}
-  #hitFrom .hchip{padding:5px 11px;font-size:12px}
+  #hitFrom .hchip{padding:5px 11px;font-size:14px}
   .hchip{border:1px solid var(--line);background:#fff;color:var(--muted);
-    border-radius:999px;padding:7px 13px;font-size:13px;font-weight:700;
+    border-radius:999px;padding:7px 13px;font-size:15px;font-weight:700;
     cursor:pointer;font-family:inherit;flex:0 0 auto}
   /* 고른 칸은 teal — 상단바 네이비와 색이 겹치지 않게 */
   .hchip.on{background:var(--ac,var(--teal));border-color:var(--ac,var(--teal));color:#fff}
   @media (max-width:480px){
     .hitrange{gap:4px}
-    .hchip{padding:7px 9px;font-size:12.5px}
+    .hchip{padding:7px 9px;font-size:14px}
   }
-  @media (max-width:360px){ .hchip{padding:6px 7px;font-size:12px} }
+  @media (max-width:360px){ .hchip{padding:6px 7px;font-size:14px} }
   .hitbar{height:9px;background:var(--navyBg);border-radius:5px;overflow:hidden;margin-top:6px}
   .hitbar i{display:block;height:100%;background:var(--ac,var(--teal));border-radius:5px}
   .hitrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
   .hitrow:last-child{border-bottom:none}
   .hitrow .nm{flex:1;min-width:0}
-  .hitrow .nm b{display:block;font-size:14.5px;font-weight:800;color:var(--navy)}
-  .hitrow .nm span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
-  .hitrow .pc{flex:0 0 62px;text-align:right;font-size:19px;font-weight:800;color:var(--navy)}
-  .hitrow .pc em{font-style:normal;font-size:12px;color:var(--muted);margin-left:1px}
+  .hitrow .nm b{display:block;font-size:17px;font-weight:800;color:var(--navy)}
+  .hitrow .nm span{display:block;font-size:14px;color:var(--muted);margin-top:2px}
+  .hitrow .pc{flex:0 0 62px;text-align:right;font-size:21px;font-weight:800;color:var(--navy)}
+  .hitrow .pc em{font-style:normal;font-size:14px;color:var(--muted);margin-left:1px}
   .hitab{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
   .hitab>div{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px;text-align:center}
-  .hitab .t{font-size:12.5px;color:var(--muted);font-weight:700}
-  .hitab .v{font-size:27px;font-weight:800;color:var(--navy);margin-top:5px;letter-spacing:-1px}
-  .hitab .s{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .hitab .t{font-size:14px;color:var(--muted);font-weight:700}
+  .hitab .v{font-size:30px;font-weight:800;color:var(--navy);margin-top:5px;letter-spacing:-1px}
+  .hitab .s{font-size:13.5px;color:var(--muted);margin-top:3px}
   .hitab .good{border-color:#9FD8C6;background:var(--tealBg)}
   .hitab .good .v{color:var(--teal)}
-  .mtab{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}
-  .mtab th{background:var(--navyBg);color:var(--navy);font-weight:800;font-size:12px;
+  .mtab{border-collapse:collapse;width:100%;font-size:15px;white-space:nowrap}
+  .mtab th{background:var(--navyBg);color:var(--navy);font-weight:800;font-size:14px;
     padding:8px 9px;border-bottom:2px solid var(--line);text-align:center;line-height:1.3}
-  .mtab td{padding:9px;border-bottom:1px solid var(--line);text-align:center;color:var(--navy)}
+  .mtab td{padding:14px 4px;border-bottom:1px solid var(--line);text-align:center;color:var(--navy)}
   .mtab td.m{font-weight:800;background:#FAFBFC;padding:4px}
-  .ymbtn{background:none;border:none;font-family:inherit;font-size:13px;font-weight:800;
+  .ymbtn{background:none;border:none;font-family:inherit;font-size:15px;font-weight:800;
     color:var(--ac,var(--navy));cursor:pointer;padding:7px 9px;border-radius:8px}
   .ymbtn:hover{background:var(--acBg,var(--navyBg))}
   .mtab td.g{color:var(--teal);font-weight:800}
@@ -306,14 +306,14 @@
   .chrow{padding:11px 0;border-bottom:1px solid var(--line)}
   .chrow:last-child{border-bottom:none;padding-bottom:2px}
   .ct{display:flex;align-items:baseline;gap:8px}
-  .ct b{flex:1;min-width:0;font-size:13.5px;font-weight:800;color:var(--navy);letter-spacing:-.3px}
-  .ct .cn{font-size:13.5px;font-weight:800;color:var(--navy)}
-  .ct .cp{font-size:12.5px;font-weight:800;color:var(--ac,var(--navy));min-width:38px;text-align:right}
+  .ct b{flex:1;min-width:0;font-size:16.5px;font-weight:800;color:var(--navy);letter-spacing:-.3px}
+  .ct .cn{font-size:16.5px;font-weight:800;color:var(--navy)}
+  .ct .cp{font-size:14px;font-weight:800;color:var(--ac,var(--navy));min-width:38px;text-align:right}
   .cbar{height:7px;background:var(--acBg,var(--navyBg));border-radius:4px;overflow:hidden;margin-top:7px}
   .cbar i{display:block;height:100%;background:var(--ac,var(--navy));border-radius:4px}
-  .sth{font-size:15px;font-weight:800;color:var(--navy);letter-spacing:-.4px}
-  .sts{font-size:12px;color:var(--muted);font-weight:700;margin:3px 0 10px}
-  .stnote{font-size:14px;font-weight:800;color:var(--navy);margin-top:12px;
+  .sth{font-size:17px;font-weight:800;color:var(--navy);letter-spacing:-.4px}
+  .sts{font-size:14px;color:var(--muted);font-weight:700;margin:3px 0 10px}
+  .stnote{font-size:16.5px;font-weight:800;color:var(--navy);margin-top:12px;
     padding-top:12px;border-top:1px solid var(--line)}
   .plan2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   /* 이사 예정 문의 — 네 달을 누를 수 있게 */
@@ -323,48 +323,48 @@
   /* 세 달 나란히 표 — 건수 위, 비율 아래. 둘 다 가운데 정렬 */
   .ctab2{border-collapse:collapse;width:100%;table-layout:fixed}
   .ctab2 th{background:var(--acBg,var(--navyBg));color:var(--navy);font-weight:800;
-    font-size:12px;padding:8px 4px;text-align:center;border-bottom:2px solid var(--line)}
+    font-size:14px;padding:8px 4px;text-align:center;border-bottom:2px solid var(--line)}
   .ctab2 th:first-child{text-align:left;padding-left:10px;width:34%}
-  .ctab2 td{padding:10px 4px;text-align:center;border-bottom:1px solid var(--line);
+  .ctab2 td{padding:14px 4px;text-align:center;border-bottom:1px solid var(--line);
     line-height:1.3;vertical-align:middle}
-  .ctab2 td.nm{text-align:left;padding-left:10px;font-size:13px;font-weight:800;color:var(--navy)}
-  .ctab2 td b{display:block;font-size:16px;font-weight:800;color:var(--navy);
+  .ctab2 td.nm{text-align:left;padding-left:10px;font-size:15px;font-weight:800;color:var(--navy)}
+  .ctab2 td b{display:block;font-size:17px;font-weight:800;color:var(--navy);
     font-variant-numeric:tabular-nums}
-  .ctab2 td i{display:block;font-style:normal;font-size:11.5px;font-weight:700;
+  .ctab2 td i{display:block;font-style:normal;font-size:13.5px;font-weight:700;
     color:var(--muted);margin-top:2px}
   .ctab2 td i.thin{opacity:.5}
   .ctab2 td.z{color:#C3CAD6;font-weight:700}
   .ctab2 tr.sum td{background:#FAFBFC;border-top:2px solid var(--line);border-bottom:none}
   .ctab2 tr.sum td b{color:var(--ac,var(--navy))}
-  .plan4 .pcard .pn{font-size:24px}
-  .plan4 .pcard .pn em{font-size:12px}
+  .plan4 .pcard .pn{font-size:27px}
+  .plan4 .pcard .pn em{font-size:14px}
   @media (max-width:400px){
     .plan4{gap:5px}
     .plan4 .pcard{padding:11px 3px}
-    .plan4 .pcard .pn{font-size:21px}
-    .plan4 .pcard .pm{font-size:11.5px}
+    .plan4 .pcard .pn{font-size:23px}
+    .plan4 .pcard .pm{font-size:13.5px}
   }
   .pcard{background:var(--acBg,var(--navyBg));border-radius:12px;padding:16px 12px;text-align:center}
   .pcard.now{background:var(--ac,var(--navy))}
-  .pcard .pm{font-size:12.5px;font-weight:800;color:var(--muted)}
+  .pcard .pm{font-size:14px;font-weight:800;color:var(--muted)}
   .pcard.now .pm{color:rgba(255,255,255,.75)}
-  .pcard .pn{font-size:30px;font-weight:900;color:var(--ac,var(--navy));
+  .pcard .pn{font-size:34px;font-weight:900;color:var(--ac,var(--navy));
     letter-spacing:-1.5px;margin-top:4px}
   .pcard.now .pn{color:#fff}
-  .pcard .pn em{font-style:normal;font-size:14px;font-weight:800;margin-left:2px}
+  .pcard .pn em{font-style:normal;font-size:16.5px;font-weight:800;margin-left:2px}
   /* 같은 손님이 두 번 넣은 건 */
   .dupb{background:var(--coralBg);color:var(--coral);border-radius:999px;
-    padding:3px 9px;font-size:11.5px;font-weight:800;letter-spacing:-.2px}
-  .dlt{display:inline-block;margin-left:5px;font-size:11.5px;font-weight:800;color:var(--muted);
+    padding:3px 9px;font-size:13.5px;font-weight:800;letter-spacing:-.2px}
+  .dlt{display:inline-block;margin-left:5px;font-size:13.5px;font-weight:800;color:var(--muted);
     letter-spacing:-.2px;white-space:nowrap;vertical-align:middle}
   .dlt.up{color:var(--teal)}
   .dlt.dn{color:var(--coral)}
-  .stats .pill .n .dlt{display:block;margin:3px 0 0;font-size:11px}
-  .ctab{border-collapse:collapse;width:100%;font-size:13.5px}
-  .ctab th{background:var(--navyBg);color:var(--navy);font-weight:800;font-size:12px;
+  .stats .pill .n .dlt{display:block;margin:3px 0 0;font-size:13.5px}
+  .ctab{border-collapse:collapse;width:100%;font-size:16.5px}
+  .ctab th{background:var(--navyBg);color:var(--navy);font-weight:800;font-size:14px;
     padding:8px 6px;border-bottom:2px solid var(--line);text-align:center}
   .ctab th:first-child{text-align:left;padding-left:10px}
-  .ctab td{padding:11px 6px;border-bottom:1px solid var(--line);text-align:center;
+  .ctab td{padding:14px 6px;border-bottom:1px solid var(--line);text-align:center;
     color:var(--navy);font-weight:700}
   .ctab td.nm{text-align:left;padding-left:10px;font-weight:800}
   .ctab td.up{color:var(--teal);font-weight:800}
@@ -374,27 +374,64 @@
   .hgraph{display:flex;align-items:flex-end;gap:8px;height:150px;padding:14px 4px 0;
     border-bottom:2px solid var(--line);margin:6px 0 4px}
   .hgcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
-  .hgcol .v{font-size:13px;font-weight:800;color:var(--navy);margin-bottom:4px}
+  .hgcol .v{font-size:15px;font-weight:800;color:var(--navy);margin-bottom:4px}
   .hgcol .bar{width:100%;max-width:46px;background:var(--ac,var(--teal));border-radius:6px 6px 0 0;min-height:3px}
   .hgcol.zero .bar{background:var(--line)}
   .hgcol.zero .v{color:var(--muted)}
   .hglbl{display:flex;gap:8px;padding:8px 4px 0}
-  .hglbl div{flex:1;text-align:center;font-size:11px;color:var(--muted);
+  .hglbl div{flex:1;text-align:center;font-size:13.5px;color:var(--muted);
     font-weight:700;line-height:1.35;word-break:keep-all}
-  .soon .big{font-size:15px;font-weight:800;color:var(--navy);margin-bottom:6px}
+  .soon .big{font-size:17px;font-weight:800;color:var(--navy);margin-bottom:6px}
   .hint{background:var(--amberBg);color:#8A5F0B;border-radius:10px;padding:12px 14px;
-    font-size:13.5px;line-height:1.6;margin-bottom:12px;font-weight:700}
+    font-size:16.5px;line-height:1.6;margin-bottom:12px;font-weight:700}
 
   .gate{max-width:340px;margin:70px auto 0;background:#fff;border:1px solid var(--line);
     border-radius:16px;padding:26px 22px;text-align:center}
-  .gate h2{margin:0 0 6px;font-size:17px;font-weight:800}
-  .gate p{font-size:12.5px;color:var(--muted);margin:0 0 18px}
-  .gate input{width:100%;font-size:16px;padding:12px 14px;border-radius:10px;
+  .gate h2{margin:0 0 6px;font-size:18px;font-weight:800}
+  .gate p{font-size:14px;color:var(--muted);margin:0 0 18px}
+  .gate input{width:100%;font-size:17px;padding:12px 14px;border-radius:10px;
     border:1.5px solid var(--line);outline:none;text-align:center;font-family:inherit;margin-bottom:12px}
   .gate button{width:100%;border:none;background:var(--navy);color:#fff;border-radius:10px;
-    padding:13px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
-  .gate .err{color:var(--coral);font-size:12.5px;margin-top:10px;font-weight:700}
+    padding:13px;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit}
+  .gate .err{color:var(--coral);font-size:14px;margin-top:10px;font-weight:700}
   .hide{display:none}
+
+  /* ═══ v31 · 월별 반응 — 뒤집은 표 (규칙서 4-4 / 4-4-1 / 4-4-2) ═══ */
+  .mt{border-collapse:collapse;width:100%;table-layout:fixed;margin-top:4px}
+  .mt th{background:var(--acBg,var(--navyBg));color:var(--navy);font-weight:800;
+    font-size:14px;padding:14px 4px;text-align:center;border-bottom:2px solid var(--line)}
+  .mt th:first-child{text-align:left;padding-left:10px;width:92px}
+  .mt th.now{background:var(--ac,var(--navy));color:#fff}
+  .mt td{padding:14px 4px;text-align:center;border-bottom:1px solid #EEF1F5;
+    font-weight:700;font-size:16.5px;font-variant-numeric:tabular-nums;color:var(--navy)}
+  .mt td.now{background:#F7FAFF;font-weight:900}
+  .mt tr.gap td{padding-top:19px;border-top:2px solid var(--line)}
+  .mt tr.pc td{color:var(--teal);font-weight:800}
+  .mt tr.pc td.nm{color:var(--muted)}
+  .mt tr.pc td.dim{color:#B6C0CC}
+  /* 첫 칸 이름 — 낱글자를 양 끝으로 민다 */
+  .mt td.nm{text-align:left;padding-left:10px;padding-right:13px;
+    font-size:16.5px;font-weight:800;letter-spacing:0;line-height:1.5}
+  .mt td.nm .ml{display:flex;justify-content:space-between;align-items:baseline}
+  .mt td.nm .ml i{font-style:normal;display:inline-block}
+  .mt td.nm .ml.one{display:block;text-align:left}
+  .mt td .dlt{display:block;font-size:13.5px;font-weight:700;margin-top:3px;letter-spacing:-.2px}
+  @media (max-width:420px){
+    .mt th:first-child{width:84px}
+    .mt th{padding:14px 2px}
+    .mt td{padding:14px 2px}
+    .mt td.nm{padding-left:8px;padding-right:11px}
+  }
+  .mnote{font-size:14px;color:var(--muted);font-weight:700;margin:14px 0 7px;
+    padding-top:13px;border-top:1px solid var(--line)}
+  .myms{display:flex;gap:6px;flex-wrap:wrap}
+  .myms .ymbtn{border:1px solid var(--line);background:#fff;border-radius:999px;
+    padding:9px 14px;font-size:15px;font-weight:800;color:var(--navy);min-height:44px}
+
+  /* ═══ v31 · 받는 중 띠 — 화면을 지우지 않는다 ═══ */
+  .loadbar{position:sticky;top:0;z-index:9;background:var(--teal);color:#fff;
+    font-size:14px;font-weight:800;text-align:center;padding:7px 10px;
+    border-radius:9px;margin-bottom:9px;letter-spacing:-.3px}
 </style>
 </head>
 <body>
@@ -411,7 +448,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:11px;font-weight:700;opacity:.55;margin-left:6px">v30 · 0831-2100</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v31 · 0902-2340</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -633,32 +670,104 @@ function setHitRange(txt){
   if(el) el.textContent=txt||'';
 }
 
+/* ★v31 — 한 번 받은 것을 담아둔다. 다시 누르면 즉시 보여주고 뒤에서 새로 받는다 */
+var HIT_CACHE={};
+function hitKey(){ return HIT_DAYS+'|'+HIT_YM+'|'+HIT_F; }
+
+/* ★v31 — 화면을 지우지 않는다. 위에 얇은 띠만 띄운다 */
+function busyOn(){
+  var el=document.getElementById('hitBody');
+  if(!el) return;
+  if(el.querySelector('.loadbar')) return;
+  if(!el.innerHTML.trim()){
+    el.innerHTML='<div class="loading">견적링크 반응을 읽는 중입니다…</div>';
+    return;
+  }
+  var b=document.createElement('div');
+  b.className='loadbar'; b.textContent='새로 받는 중…';
+  el.insertBefore(b, el.firstChild);
+}
+function busyOff(){
+  var el=document.getElementById('hitBody');
+  if(!el) return;
+  var b=el.querySelector('.loadbar');
+  if(b) b.parentNode.removeChild(b);
+}
+
 function loadHit(){
-  document.getElementById('hitBody').innerHTML='<div class="loading">견적링크 반응을 읽는 중입니다…</div>';
+  var ck=hitKey(), had=HIT_CACHE[ck];
+  if(had){ document.getElementById('hitBody').innerHTML=had; }
+  busyOn();
   if(HIT_DAYS==='month'){
     if(HIT_YM){
       /* 달을 골랐으면 그 달만 자세히 */
       setHitRange('');
-      fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logOne&ym='+encodeURIComponent(HIT_YM)+'&f='+encodeURIComponent(HIT_F))
+      fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logOne&ym='+encodeURIComponent(HIT_YM+'&_='+Date.now())+'&f='+encodeURIComponent(HIT_F))
         .then(function(r){return r.json();}).then(function(res){
-          renderHit(res && res.ok ? res : null, true);
-        }).catch(function(){ renderHit(null,true); });
+          renderHit(res && res.ok ? res : null, true); hitSave();
+        }).catch(function(){ renderHit(null,true); busyOff(); });
       return;
     }
     setHitRange('달마다 한 줄씩 · 지우지 않고 계속 쌓입니다');
-    fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logMonth')
+    fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logMonth'+'&_='+Date.now())
       .then(function(r){return r.json();})
-      .then(function(res){ renderMonth(res && res.ok ? res.rows : null); })
-      .catch(function(){ renderMonth(null); });
+      .then(function(res){ renderMonth(res && res.ok ? res.rows : null); hitSave(); })
+      .catch(function(){ renderMonth(null); busyOff(); });
     return;
   }
   var url=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logStat&days='+HIT_DAYS+'&f='+encodeURIComponent(HIT_F);
-  fetch(url).then(function(r){return r.json();}).then(function(res){
-    renderHit(res && res.ok ? res : null);
-  }).catch(function(){ renderHit(null); });
+  fetch(url+'&_='+Date.now()).then(function(r){return r.json();}).then(function(res){
+    renderHit(res && res.ok ? res : null); hitSave();
+  }).catch(function(){ renderHit(null); busyOff(); });
 }
 
-/* 월별 — 달마다 한 줄씩, 지우지 않고 계속 쌓인다 */
+/* 월별 — 세로가 항목, 가로가 달. 옆으로 밀지 않는다 (v31)
+   화면규칙서 4-4-2 「열이 여덟을 넘으면 표를 뒤집는다」 */
+var MON_N = 4;          /* 나란히 볼 달 수 */
+
+/* 시트 열 이름(왼쪽)과 표에 보일 이름(오른쪽). 시트 이름은 바꾸지 않는다 */
+var MCOLS=[
+  {k:'홈 열림',         l:['홈','열림']},
+  {k:'견적 신청하기',   l:['견적','신청']},
+  {k:'견적 전송 누름',  l:['전송','누름']},
+  {k:'왜 청소가 공짜지',l:['청소','공짜']},
+  {k:'7 · 5',          l:['7 · 5'], keep:1},
+  {k:'고객 후기',       l:['고객','후기']},
+  {k:'회사 소개',       l:['회사','소개']},
+  {k:'지인에게',        l:['지인','에게']}
+];
+var MRATES=[
+  {k:'청소 전환율(%)',           l:['청소','전환']},
+  {k:'7·5 전환율(%)',            l:['7 · 5','전환'], keep:1},
+  {k:'후기 전환율(%)',           l:['후기','전환']},
+  {k:'아무것도 안 본 전환율(%)', l:['안본','전환']}
+];
+
+/* 낱글자를 양 끝으로 민다 — 「견적」 → 견   적 */
+function mspread(t){
+  var ch=String(t).replace(/\s+/g,'').split('');
+  if(ch.length<2) return '<span class="ml one">'+esc(t)+'</span>';
+  return '<span class="ml">'+ch.map(function(c){return '<i>'+esc(c)+'</i>';}).join('')+'</span>';
+}
+function mname(o){
+  return o.l.map(function(t,i){
+    return (o.keep && i===0) ? '<span class="ml one">'+esc(t)+'</span>' : mspread(t);
+  }).join('');
+}
+function mdlt(now,prev){
+  if(prev==null||isNaN(prev)) return '';
+  var d=now-prev;
+  if(!d) return '<span class="dlt">·0</span>';
+  return '<span class="dlt '+(d>0?'up':'dn')+'">'+(d>0?'▲':'▼')+Math.abs(d)+'</span>';
+}
+
+/* 그린 뒤 담아둔다 */
+function hitSave(){
+  busyOff();
+  var el=document.getElementById('hitBody');
+  if(el) HIT_CACHE[hitKey()]=el.innerHTML;
+}
+
 function renderMonth(rows){
   var el=document.getElementById('hitBody');
   if(!rows){
@@ -671,7 +780,6 @@ function renderMonth(rows){
       '앱스크립트에서 월별반응_갱신 을 한 번 실행하시면 이번 달부터 쌓입니다.</div>';
     return;
   }
-  var cols=['홈 열림','견적 신청하기','견적 전송 누름','왜 청소가 공짜지','7 · 5','고객 후기','회사 소개','지인에게'];
   /* 시트가 달을 날짜로 바꿔놨어도 2026-08 모양으로 되돌린다 */
   function ymTxt(v){
     var t=String(v||'').trim();
@@ -681,38 +789,54 @@ function renderMonth(rows){
     if(!isNaN(d.getTime())) return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);
     return t;
   }
-  var h='<div class="card" style="overflow-x:auto">'+
-    '<div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px">달마다 몇 명이 눌렀나</div>'+
-    '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">사람 수 기준 · 최신 달이 위</div>'+
-    '<table class="mtab"><tr><th>달</th>';
-  cols.forEach(function(c){ h+='<th>'+esc(c)+'</th>'; });
-  h+='<th>청소<br>전환율</th><th>7·5<br>전환율</th><th>후기<br>전환율</th><th>안 본<br>전환율</th></tr>';
-  /* 최신 달이 위. 바로 아래 줄이 전달이므로 증감을 낼 수 있다 */
-  rows.forEach(function(r,ix){
+  /* 들어온 순서는 최신이 위. 표는 왼쪽이 옛 달이라 뒤집는다 */
+  var all=rows.slice().reverse();
+  var show=all.slice(-MON_N);
+  var first=all.length-show.length;
+
+  var h='<div class="card">'+
+    '<div class="sth">달마다 몇 명이 눌렀나</div>'+
+    '<div class="sts">사람 수 기준 · 오른쪽이 최신 달 · 숫자 아래는 전달보다 는 사람 수</div>';
+
+  h+='<table class="mt"><tr><th>항목</th>';
+  show.forEach(function(r,i){
     var ym=ymTxt(r['달']);
-    var prev=rows[ix+1];
-    h+='<tr><td class="m"><button type="button" class="ymbtn" data-ym="'+esc(ym)+'">'+esc(ym)+'</button></td>';
-    cols.forEach(function(c,ci){
-      var v=(r[c]===''||r[c]==null)?null:Number(r[c]);
-      var cell=(v===null||isNaN(v))?'–':v;
-      /* 첫 칸(홈 열림)에만 전달 대비 증감을 붙인다 — 다 붙이면 표가 빽빽해진다 */
-      if(ci===0 && prev && v!==null && !isNaN(v)){
-        var pv=Number(prev[c]);
-        if(!isNaN(pv) && pv>0){
-          var df=v-pv, pc=Math.round(df/pv*1000)/10;
-          cell+='<span class="dlt '+(df>0?'up':(df<0?'dn':''))+'">'+
-                (df>0?'▲':(df<0?'▼':'·'))+Math.abs(df)+'</span>';
-        }
-      }
-      h+='<td>'+cell+'</td>';
-    });
-    ['청소 전환율(%)','7·5 전환율(%)','후기 전환율(%)','아무것도 안 본 전환율(%)'].forEach(function(k,ix){
-      var v=r[k];
-      h+='<td class="'+(ix===3?'':'g')+'">'+(v===''||v==null?'–':v+'%')+'</td>';
+    h+='<th class="'+(i===show.length-1?'now':'')+'">'+
+       esc(ym.slice(5).replace(/^0/,''))+'월</th>';
+  });
+  h+='</tr>';
+
+  MCOLS.forEach(function(o){
+    h+='<tr><td class="nm">'+mname(o)+'</td>';
+    show.forEach(function(r,i){
+      var v=(r[o.k]===''||r[o.k]==null)?null:Number(r[o.k]);
+      var pv=(first+i>0)?Number(all[first+i-1][o.k]):null;
+      h+='<td class="'+(i===show.length-1?'now':'')+'">'+
+         ((v===null||isNaN(v))?'–':(v+mdlt(v,pv)))+'</td>';
     });
     h+='</tr>';
   });
-  h+='</table></div>';
+  MRATES.forEach(function(o,ri){
+    h+='<tr class="pc'+(ri===0?' gap':'')+'"><td class="nm">'+mname(o)+'</td>';
+    show.forEach(function(r,i){
+      var v=r[o.k];
+      h+='<td class="'+(ri===3?'dim':'')+(i===show.length-1?' now':'')+'">'+
+         ((v===''||v==null)?'–':(v+'%'))+'</td>';
+    });
+    h+='</tr>';
+  });
+  h+='</table>';
+
+  if(all.length>show.length){
+    h+='<div class="mnote">앞선 '+(all.length-show.length)+'달은 달을 눌러 보십시오</div>';
+    h+='<div class="myms">';
+    all.slice(0,first).forEach(function(r){
+      var ym=ymTxt(r['달']);
+      h+='<button type="button" class="ymbtn" data-ym="'+esc(ym)+'">'+esc(ym)+'</button>';
+    });
+    h+='</div>';
+  }
+  h+='</div>';
   el.innerHTML=h;
 }
 
@@ -745,9 +869,9 @@ function renderHit(d,one){
   }
 
   var h='';
-  h+='<div class="stats"><div style="font-size:12px;color:var(--muted);font-weight:800">견적링크를 연 사람</div>'+
-     '<div style="font-size:34px;font-weight:800;letter-spacing:-1.5px;margin-top:4px;color:var(--navy)">'+open+
-     '<span style="font-size:16px;font-weight:700;margin-left:3px;color:var(--muted)">명</span></div></div>';
+  h+='<div class="stats"><div style="font-size:14px;color:var(--muted);font-weight:800">견적링크를 연 사람</div>'+
+     '<div style="font-size:38px;font-weight:800;letter-spacing:-1.5px;margin-top:4px;color:var(--navy)">'+open+
+     '<span style="font-size:17px;font-weight:700;margin-left:3px;color:var(--muted)">명</span></div></div>';
 
   /* ★ 어디를 눌렀나 — 버튼 여섯 개는 0이어도 항상 보여준다 */
   var MAIN=[['form','견적 신청하기'],['free','왜 청소가 공짜지'],['data','7 · 5'],
@@ -766,9 +890,9 @@ function renderHit(d,one){
            '<div class="pc">'+(r.rate||0)+'<em>%</em></div></div>';
   }
 
-  h+='<div class="card"><div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px">'+
+  h+='<div class="card"><div style="font-size:16.5px;font-weight:800;color:var(--navy);margin-bottom:4px">'+
      '고객이 무엇을 궁금해했나</div>'+
-     '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">연 사람 '+open+'명 기준 · 사람 수</div>';
+     '<div style="font-size:14px;color:var(--muted);margin-bottom:8px">연 사람 '+open+'명 기준 · 사람 수</div>';
 
   /* 막대그래프 — 여섯 버튼을 한눈에 견준다 */
   var mx=0;
@@ -787,7 +911,7 @@ function renderHit(d,one){
   MAIN.forEach(function(x){ h+=rowHtml(x[0],x[1]); });
   h+='</div>';
 
-  h+='<div class="card"><div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:8px">'+
+  h+='<div class="card"><div style="font-size:16.5px;font-weight:800;color:var(--navy);margin-bottom:8px">'+
      '그 밖에</div>';
   SUB.forEach(function(x){ h+=rowHtml(x[0],x[1]); });
   h+='</div>';
@@ -797,9 +921,9 @@ function renderHit(d,one){
   var cv=d.conv||[], bs=d.base||null;
   if(cv.length){
     var thin=(open<30);
-    h+='<div class="card"><div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px">'+
+    h+='<div class="card"><div style="font-size:16.5px;font-weight:800;color:var(--navy);margin-bottom:4px">'+
        '무엇을 본 사람이 견적을 넣었나</div>'+
-       '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">'+
+       '<div style="font-size:14px;color:var(--muted);margin-bottom:10px">'+
        (thin?'★ 아직 '+open+'명뿐입니다. 몇백 명은 쌓여야 뜻이 있습니다.'
             :'맨 아래 줄이 기준선입니다. 그보다 높으면 그 화면이 일한 것입니다.')+
        '</div><table class="ctab"><tr><th>본 화면</th><th>본 사람</th><th>견적</th><th>전환율</th></tr>';
@@ -846,7 +970,7 @@ function loadRefer(){
   document.getElementById('referList').innerHTML='<div class="loading">소개 접수를 읽는 중입니다…</div>';
   document.getElementById('referCnt').textContent='불러오는 중…';
   var url=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=refer';
-  fetch(url).then(function(r){return r.json();}).then(function(res){
+  fetch(url+'&_='+Date.now()).then(function(r){return r.json();}).then(function(res){
     REFER=(res&&res.ok&&res.rows)?res.rows:[];
     REFER_LOADED=true;
     renderReferAll();
@@ -928,8 +1052,8 @@ function renderLedger(){
   keys.forEach(function(k){
     var v=by[k];
     var tag = (v.main==='지인소개')
-      ? '<span class="ch" style="background:#EFEBFA;color:#6B4FBB;border-radius:7px;padding:3px 9px;font-size:12px;font-weight:800">지인</span>'
-      : '<span class="ch" style="background:#E8F0FC;color:#2C6FD1;border-radius:7px;padding:3px 9px;font-size:12px;font-weight:800">부동산</span>';
+      ? '<span class="ch" style="background:#EFEBFA;color:#6B4FBB;border-radius:7px;padding:3px 9px;font-size:14px;font-weight:800">지인</span>'
+      : '<span class="ch" style="background:#E8F0FC;color:#2C6FD1;border-radius:7px;padding:3px 9px;font-size:14px;font-weight:800">부동산</span>';
     h+='<div class="lrow"><div><div class="nm">'+tag+' '+esc(v.who)+'</div>'
       +(v.tel?'<div class="sub">'+esc(v.tel)+'</div>':'')
       +'</div><div class="cn">'+v.n+'건</div></div>';
@@ -994,11 +1118,11 @@ var REVIEW=[]; var REVIEW_LOADED=false; var RVFILTER='all';
 function loadReview(){
   document.getElementById('reviewList').innerHTML='<div class="loading">후기를 읽는 중입니다…</div>';
   document.getElementById('reviewCnt').textContent='불러오는 중…';
-  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=reviewAll')
+  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=reviewAll'+'&_='+Date.now())
     .then(function(r){return r.json();})
     .then(function(res){
       if(!res.ok){
-        document.getElementById('reviewList').innerHTML='<div class="empty"><div class="big">불러오지 못했습니다</div>'+(res.error||'')+'<br><span style="font-size:12px">앱스크립트를 v26으로 올리셨는지 확인해 주세요.</span></div>';
+        document.getElementById('reviewList').innerHTML='<div class="empty"><div class="big">불러오지 못했습니다</div>'+(res.error||'')+'<br><span style="font-size:14px">앱스크립트를 v26으로 올리셨는지 확인해 주세요.</span></div>';
         return;
       }
       REVIEW=res.rows||[]; REVIEW_LOADED=true;
@@ -1083,8 +1207,8 @@ function renderReview(){
     });
     h+='</div>';
 
-    h+='<div class="stars">'+s+(num?' <b style="color:var(--navy);font-size:15px">'+num+'</b>'
-      :' <b style="color:#B6C0CC;font-size:13px">별점없음</b>')+'</div>';
+    h+='<div class="stars">'+s+(num?' <b style="color:var(--navy);font-size:17px">'+num+'</b>'
+      :' <b style="color:#B6C0CC;font-size:15px">별점없음</b>')+'</div>';
     if(v.text) h+='<div class="tx">'+esc(v.text)+'</div>';
     else h+='<div class="tx" style="color:#9AA6B4">(글 없이 별점만 — 손님 화면에는 카드로 안 나가고 평균에만 반영됩니다)</div>';
     if(v.scores&&v.scores.length){
@@ -1109,7 +1233,7 @@ function toggleReview(row, toOpen){
   var old=b?b.textContent:'';
   if(b){ b.disabled=true; b.textContent='바꾸는 중…'; }
   var open = toOpen ? 'Y' : 'N';
-  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=reviewSet&row='+row+'&open='+open)
+  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=reviewSet&row='+row+'&open='+open+'&_='+Date.now())
     .then(function(r){return r.json();})
     .then(function(res){
       if(!res.ok){ if(b){b.disabled=false;b.textContent=old;} alert('바꾸지 못했습니다 : '+(res.error||'')); return; }
@@ -1212,7 +1336,7 @@ function setRvMode(m){
 }
 
 function loadRating2(){   /* 건수만 미리 세어 둠 */
-  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=rating')
+  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=rating'+'&_='+Date.now())
     .then(function(r){return r.json();})
     .then(function(res){
       if(!res.ok)return;
@@ -1226,7 +1350,7 @@ function loadRating2(){   /* 건수만 미리 세어 둠 */
 function loadRating(){
   document.getElementById('reviewList').innerHTML='<div class="loading">새 평가를 읽는 중입니다…</div>';
   document.getElementById('reviewCnt').textContent='불러오는 중…';
-  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=rating')
+  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=rating'+'&_='+Date.now())
     .then(function(r){return r.json();})
     .then(function(res){
       if(!res.ok){ document.getElementById('reviewList').innerHTML='<div class="empty"><div class="big">불러오지 못했습니다</div>'+(res.error||'')+'</div>'; return; }
@@ -1278,7 +1402,7 @@ function renderRating(){
     if(v.code) h+='<div><span class="mk">코드</span>'+esc(v.code)+'</div>';
     h+='</div>';
 
-    h+='<div class="stars">'+s+' <b style="color:var(--navy);font-size:15px">'+(avg?avg.toFixed(1):'-')+'</b></div>';
+    h+='<div class="stars">'+s+' <b style="color:var(--navy);font-size:17px">'+(avg?avg.toFixed(1):'-')+'</b></div>';
     if(v.scores&&v.scores.length){
       h+='<div class="rtaghead">항목별 점수</div><div class="scores">';
       v.scores.forEach(function(x){ h+='<div class="sc"><span class="sn">'+esc(x.k)+'</span><span class="sv">'+x.v+'</span></div>'; });
@@ -1298,7 +1422,7 @@ function renderRating(){
 
 function publishRating(row){
   var b=document.getElementById('pb'+row); if(b){ b.disabled=true; b.textContent='공개하는 중…'; }
-  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=ratingPub&row='+row)
+  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=ratingPub&row='+row+'&_='+Date.now())
     .then(function(r){return r.json();})
     .then(function(res){
       if(!res.ok){ if(b){b.disabled=false;b.textContent='손님 화면에 공개하기';} alert('공개하지 못했습니다 : '+(res.error||'')); return; }
@@ -1316,7 +1440,7 @@ function loadQuote(){
   document.getElementById('quoteList').innerHTML='<div class="loading">시트를 읽는 중입니다…</div>';
   document.getElementById('quoteCnt').textContent='불러오는 중…';
   var url=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=quote';
-  fetch(url).then(function(r){return r.json();}).then(function(res){
+  fetch(url+'&_='+Date.now()).then(function(r){return r.json();}).then(function(res){
     if(!res.ok){
       if(res.error==='key'){
         try{ localStorage.removeItem('office_key'); }catch(e){}
@@ -1339,7 +1463,7 @@ function loadQuote(){
     /* 자료가 왔으면 통계 탭도 다시 그린다 (숨겨져 있어도 미리 채워둔다) */
     try{ renderStatTab(); }catch(e){}
   }).catch(function(err){
-    document.getElementById('quoteList').innerHTML='<div class="empty"><div class="big">연결 오류</div>배포 주소를 확인하세요.<br><span style="font-size:11px">'+String(err)+'</span></div>';
+    document.getElementById('quoteList').innerHTML='<div class="empty"><div class="big">연결 오류</div>배포 주소를 확인하세요.<br><span style="font-size:13.5px">'+String(err)+'</span></div>';
   });
 }
 
@@ -1843,7 +1967,7 @@ function renderQuote(){
   });
   if(full.length > SHOWN){
     h+='<div style="text-align:center;padding:8px 0 20px">'
-      +'<button onclick="showMore()" style="border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:10px;padding:12px 22px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">'
+      +'<button onclick="showMore()" style="border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:10px;padding:12px 22px;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">'
       +'더 보기 (남은 '+(full.length-SHOWN)+'건)</button></div>';
   }
   document.getElementById('quoteList').innerHTML=h;
