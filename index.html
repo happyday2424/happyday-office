@@ -68,7 +68,7 @@
   .st:active,.st2:active,.hchip:active,.a:active,.btn-refresh:active{transform:scale(.97)}
 
   /* 탭을 옮길 때 내용이 툭 나타나지 않게 */
-  #pane-quote,#pane-refer,#pane-callback,#pane-review,#pane-hit{animation:fadeUp .18s ease-out}
+  #pane-quote,#pane-refer,#pane-review,#pane-hit,#pane-gate{animation:fadeUp .18s ease-out}
   @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
   /* 폰 아래 홈바에 내용이 가리지 않게 */
@@ -222,7 +222,7 @@
      면적이 작아 요란하지 않으면서 어느 탭인지 바로 알 수 있다 ═══ */
   #pane-quote    { --ac:var(--navy);  --acBg:var(--navyBg); }
   #pane-refer    { --ac:var(--teal);  --acBg:var(--tealBg); }
-  #pane-callback { --ac:var(--muted); --acBg:#F1F3F7; }
+  #pane-gate { --ac:#1D9E75; --acBg:#E1F5EE; }
   #pane-review   { --ac:var(--amber); --acBg:var(--amberBg); }
   #pane-hit      { --ac:var(--blue);  --acBg:var(--blueBg); }
   #pane-stat     { --ac:var(--purple); --acBg:var(--purpleBg); }
@@ -455,13 +455,13 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v32 · 0902-2350</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v34 · 0906-2140</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
-      <button class="tab" data-tab="callback">콜백 <span class="b">–</span></button>
       <button class="tab" data-tab="review">후기 <span class="b" id="cnt-review">–</span></button>
       <button class="tab" data-tab="hit">반응 <span class="b" id="cnt-hit">–</span></button>
+      <button class="tab" data-tab="gate">발송 <span class="b" id="cnt-gate">–</span></button>
       <button class="tab" data-tab="stat">통계</button>
     </div>
   </div>
@@ -492,10 +492,13 @@
       <div id="referList"></div>
     </div>
 
-    <div id="pane-callback" class="hide"><div class="soon"><div class="big">콜백 탭</div>준비 중입니다.</div></div>
+
 
     <!-- ═══ 통계 탭 · 한 화면에 전체 흐름 ═══ -->
     <div id="pane-stat" class="hide"><div class="soon">불러오는 중…</div></div>
+
+    <!-- ═══ 발송 탭 · 발송게이트가 잡아둔 계획 ═══ -->
+    <div id="pane-gate" class="hide"><div class="soon">불러오는 중…</div></div>
 
     <!-- ═══ 반응 탭 · 견적링크에서 손님이 어디를 눌렀나 ═══ -->
     <div id="pane-hit" class="hide">
@@ -621,12 +624,13 @@ document.querySelectorAll('.tab').forEach(function(t){
   t.onclick=function(){
     var tab=t.dataset.tab;
     document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===t);});
-    ['quote','refer','callback','review','hit','stat'].forEach(function(k){
+    ['quote','refer','review','hit','gate','stat'].forEach(function(k){
       document.getElementById('pane-'+k).classList.toggle('hide',k!==tab);
     });
     if(tab==='refer'){ renderReferAll(); if(!REFER_LOADED) loadRefer(); }
     if(tab==='hit'){ loadHit(); }
     if(tab==='stat'){ renderStatTab(); }
+    if(tab==='gate'){ loadGate(); }
     if(tab==='review'){ if(!REVIEW_LOADED) loadReview(); if(!RATING_LOADED) loadRating2(); }
   };
 });
@@ -1673,6 +1677,104 @@ function monLabel(d){ return (d.getMonth()+1)+'월'; }
    통계 탭 — 한 화면에 전체 흐름
    달별 흐름 · 이번달/다음달 · 채널별 표 · 반응 요약
    ═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   발송 탭 — 발송게이트가 잡아둔 계획
+   ─────────────────────────────────────────────────────
+   발송게이트는 시트 안에서 스스로 돈다. 여기서는 결과만 본다.
+     🔴 팔로우  견적 냈는데 계약이 안 된 건
+     🟢 후기    이사 끝난 건
+     ⚪ 케어    끝난 지 오래된 건 — 후속서비스 · AS · 재이사
+   상태가 「전화만」인 건은 문자를 못 보낸다. 동의가 없고 6개월이 지난 건이다.
+   전화는 되므로 명단에서 지우지 않고 따로 보여준다.
+   ═══════════════════════════════════════════════════════ */
+var GATE_LOADED=false;
+var BOTMARK={'팔로우':{c:'#E24B4A',t:'오늘 안 하면 매출이 날아간다'},
+             '후기':{c:'#1D9E75',t:''},
+             '케어':{c:'#7A7A7A',t:'안 해도 마이너스는 아니다'}};
+
+function loadGate(){
+  var el=document.getElementById('pane-gate');
+  if(!GATE_LOADED) el.innerHTML='<div class="soon">불러오는 중…</div>';
+  var ym=(new Date()).toISOString().slice(0,7);
+  var u1=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gateStat&ym='+ym+'&_='+Date.now();
+  var u2=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gatePlan&_='+Date.now();
+  Promise.all([
+    fetch(u1).then(function(r){return r.json();}).catch(function(){return null;}),
+    fetch(u2).then(function(r){return r.json();}).catch(function(){return null;})
+  ]).then(function(a){ renderGate(a[0],a[1]); GATE_LOADED=true; });
+}
+
+function renderGate(st,pl){
+  var el=document.getElementById('pane-gate');
+  if(!st||!st.ok){
+    el.innerHTML='<div class="soon"><div class="big">발송게이트가 아직 연결되지 않았습니다</div>'
+      +'시트에 발송게이트를 올리고, 오피스 GAS 의 doGet 에 gateHandle 한 줄을 더하면 여기에 뜹니다.</div>';
+    return;
+  }
+  var h='';
+
+  h+='<div class="stats"><div class="row1">';
+  h+='<div class="pill"><div class="n">'+(st.보냄합||0)+'</div><div class="l">이번달 보냄</div></div>';
+  h+='<div class="pill"><div class="n">'+(st.예정합||0)+'</div><div class="l">예정</div></div>';
+  h+='<div class="pill"><div class="n">'+(st.전화만||0)+'</div><div class="l">전화만</div></div>';
+  h+='</div>';
+  h+='<div class="ch-title">'+esc(st.ym)+' · 봇별</div><div class="chs">';
+  ['팔로우','후기','케어'].forEach(function(b){
+    var s1=(st.보냄&&st.보냄[b])||0, s2=(st.예정&&st.예정[b])||0;
+    if(!s1&&!s2) return;
+    var m=BOTMARK[b];
+    h+='<span class="ch"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'
+      +m.c+';margin-right:5px"></span>'+b+' 보냄<b>'+s1+'</b> 예정<b>'+s2+'</b></span>';
+  });
+  h+='</div></div>';
+
+  var rows=(pl&&pl.ok&&pl.rows)?pl.rows:[];
+  var wait=rows.filter(function(r){return r.state==='대기';});
+  var only=rows.filter(function(r){return String(r.state).indexOf('전화만')===0;});
+
+  if(!wait.length&&!only.length){
+    h+='<div class="soon"><div class="big">예정된 발송이 없습니다</div>'
+      +'시트에서 [발송게이트] → [② 발송계획 세우기] 를 눌러 주세요.</div>';
+    el.innerHTML=h; return;
+  }
+
+  var byDay={};
+  wait.forEach(function(r){ (byDay[r.date]=byDay[r.date]||[]).push(r); });
+  var days=Object.keys(byDay).sort();
+
+  h+='<div style="font-size:15px;font-weight:800;color:var(--muted);margin:16px 0 8px">다가오는 발송 '+wait.length+'건</div>';
+  days.slice(0,14).forEach(function(d){
+    var arr=byDay[d];
+    h+='<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+      +'<b style="font-size:16.5px;color:var(--navy)">'+dmd(d)+'</b>'
+      +'<span style="font-size:14px;color:var(--muted);font-weight:800">'+arr.length+'명</span></div>';
+    arr.slice(0,20).forEach(function(r){
+      var m=BOTMARK[r.bot]||{c:'#888'};
+      h+='<div style="display:flex;align-items:center;gap:7px;padding:5px 0;font-size:15px">'
+        +'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+m.c+';flex:none"></span>'
+        +'<b>'+esc(r.rule)+'</b><span style="color:var(--muted)">'+esc(r.name||'고객')+' '+esc(r.phone||'')+'</span></div>';
+    });
+    if(arr.length>20) h+='<div style="font-size:14px;color:var(--muted);padding-top:4px">… 외 '+(arr.length-20)+'명</div>';
+    h+='</div>';
+  });
+  if(days.length>14) h+='<div class="soon">… 외 '+(days.length-14)+'일치가 더 있습니다</div>';
+
+  if(only.length){
+    h+='<div style="font-size:15px;font-weight:800;color:var(--muted);margin:16px 0 8px">문자 불가 '+only.length+'건 — 전화로만 가능</div>';
+    h+='<div class="card">';
+    only.slice(0,30).forEach(function(r){
+      h+='<div style="padding:5px 0;font-size:15px"><b>'+esc(r.name||'고객')+'</b> '+esc(r.phone||'')
+        +' <span style="color:var(--muted);font-size:14px">'+esc(r.state)+'</span></div>';
+    });
+    if(only.length>30) h+='<div style="font-size:14px;color:var(--muted);padding-top:4px">… 외 '+(only.length-30)+'명</div>';
+    h+='</div>';
+  }
+
+  el.innerHTML=h;
+  var c=document.getElementById('cnt-gate');
+  if(c) c.textContent=wait.length||'–';
+}
+
 function renderStatTab(){
   try{ statBody(); }
   catch(err){
