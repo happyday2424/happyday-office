@@ -455,7 +455,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v35 · 0909-1915</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v36 · 0909-1925</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -1704,7 +1704,9 @@ function loadGate(){
   ]).then(function(a){ renderGate(a[0],a[1]); GATE_LOADED=true; });
 }
 
+var GATE_ST=null;
 function renderGate(st,pl){
+  GATE_ST=st;
   var el=document.getElementById('pane-gate');
   if(!st||!st.ok){
     el.innerHTML='<div class="soon"><div class="big">발송게이트가 아직 연결되지 않았습니다</div>'
@@ -1739,8 +1741,39 @@ function renderGate(st,pl){
     el.innerHTML=h; return;
   }
 
-  /* ★ 달력 — 이번 달과 다음 달 */
-  h+=gateCal(wait);
+  /* ★ 거르개 — 봇 · 검색. 견적 탭과 같은 자리에 둔다. */
+  h+='<div class="hitrange">';
+  [['','전체'],['팔로우','🔴 팔로우'],['후기','🟢 후기'],['케어','⚪ 케어']].forEach(function(x){
+    h+='<button class="hchip'+(GATE_BOT===x[0]?' on':'')+'" onclick="gateBot(\''+x[0]+'\')">'+x[1]+'</button>';
+  });
+  h+='</div>';
+  h+='<div style="margin:4px 2px 10px">'
+    +'<input id="gateQ" value="'+esc(GATE_Q)+'" placeholder="번호 뒷자리 · 규칙 · 지역으로 찾기" '
+    +'oninput="gateFind(this.value)" '
+    +'style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #DDE3EC;'
+    +'border-radius:10px;font-size:15px;font-family:inherit;outline:none"></div>';
+
+  /* 검색 중이면 달력 대신 결과 목록 */
+  if(GATE_Q){
+    var hit=wait.filter(gateMatch);
+    h+='<div style="font-size:15px;font-weight:800;color:var(--muted);margin:10px 0 8px">찾은 것 '+hit.length+'건</div>';
+    if(hit.length){
+      h+='<div class="card">';
+      hit.slice(0,60).forEach(function(r){ h+=gateLine(r,true); });
+      if(hit.length>60) h+='<div style="font-size:14px;color:var(--muted);padding-top:4px">… 외 '+(hit.length-60)+'명</div>';
+      h+='</div>';
+    } else {
+      h+='<div class="soon">찾는 것이 없습니다.</div>';
+    }
+    h+='<div id="gate-day"></div>';
+    el.innerHTML=h;
+    var c0=document.getElementById('cnt-gate');
+    if(c0) c0.textContent=wait.length||'–';
+    return;
+  }
+
+  /* ★ 달력 */
+  h+=gateCal(wait.filter(gateBotOk));
 
   /* 고른 날의 명단이 여기 들어간다 */
   h+='<div id="gate-day"></div>';
@@ -1757,12 +1790,38 @@ function renderGate(st,pl){
   var c=document.getElementById('cnt-gate');
   if(c) c.textContent=wait.length||'–';
 
-  /* 가장 가까운 날을 먼저 펼쳐 둔다 */
-  var days=Object.keys(wait.reduce(function(a,r){a[r.date]=1;return a;},{})).sort();
-  if(days.length) gateDay(days[0]);
+  /* 보던 날이 있으면 그대로, 없으면 가장 가까운 날 */
+  var ws=wait.filter(gateBotOk);
+  var days=Object.keys(ws.reduce(function(a,r){a[r.date]=1;return a;},{})).sort();
+  if(GATE_DAY&&days.indexOf(GATE_DAY)>=0) gateDay(GATE_DAY);
+  else if(days.length) gateDay(days[0]);
 }
 
 var GATE_ROWS=[];
+var GATE_Q='';        /* 검색어 */
+var GATE_BOT='';      /* 봇 거르기 */
+var GATE_DAY='';      /* 펼친 날짜 */
+
+function gateBotOk(r){ return !GATE_BOT || r.bot===GATE_BOT; }
+
+function gateMatch(r){
+  if(!gateBotOk(r)) return false;
+  var q=GATE_Q.trim().toLowerCase();
+  if(!q) return true;
+  var hay=[r.phone,r.rule,r.from,r.to,r.route,r.code,r.move,r.prev].join(' ').toLowerCase();
+  return hay.indexOf(q)>=0;
+}
+
+function gateBot(b){ GATE_BOT=b; renderGate(GATE_ST,{ok:true,rows:GATE_ROWS}); }
+function gateFind(q){
+  GATE_Q=q;
+  clearTimeout(window._gt);
+  window._gt=setTimeout(function(){
+    renderGate(GATE_ST,{ok:true,rows:GATE_ROWS});
+    var el=document.getElementById('gateQ');
+    if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length); }
+  },220);
+}
 
 /* ★ 달력 — 날짜 칸에 건수를 찍는다. 누르면 그날 명단이 아래 뜬다. */
 function gateCal(wait){
@@ -1808,9 +1867,10 @@ function gateCal(wait){
 
 /* 하루 명단 — 달력에서 날짜를 누르면 여기 뜬다 */
 function gateDay(key){
+  GATE_DAY=key;
   var box=document.getElementById('gate-day');
   if(!box) return;
-  var arr=GATE_ROWS.filter(function(r){return r.date===key&&r.state==='대기';});
+  var arr=GATE_ROWS.filter(function(r){return r.date===key&&r.state==='대기'&&gateBotOk(r);});
   if(!arr.length){ box.innerHTML=''; return; }
   var h='<div class="card" style="border:1.5px solid #C7DBFF">';
   h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
@@ -1823,11 +1883,12 @@ function gateDay(key){
 }
 
 /* ★ 고객 한 줄 — 전화가 왔을 때 누군지 알 수 있어야 한다 */
-function gateLine(r){
+function gateLine(r,showDate){
   var m=BOTMARK[r.bot]||{c:'#888'};
   var h='<div style="padding:8px 0;border-top:1px solid #EEF1F6">';
-  h+='<div style="display:flex;align-items:center;gap:7px;font-size:15px">'
+  h+='<div style="display:flex;align-items:center;gap:7px;font-size:15px;flex-wrap:wrap">'
     +'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+m.c+';flex:none"></span>'
+    +(showDate?'<span style="font-size:13.5px;color:#3B6FD4;font-weight:800">'+dmd(r.date)+'</span>':'')
     +'<b>'+esc(r.rule)+'</b>'
     +'<a href="tel:'+esc(r.phone)+'" style="color:var(--navy);font-weight:700;text-decoration:none">'+esc(r.phone)+'</a>';
   if(String(r.state).indexOf('전화만')===0)
