@@ -455,7 +455,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v36 · 0909-1925</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v38 · 0909-1955</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -1735,10 +1735,24 @@ function renderGate(st,pl){
   var wait=rows.filter(function(r){return r.state==='대기';});
   var only=rows.filter(function(r){return String(r.state).indexOf('전화만')===0;});
 
-  if(!wait.length&&!only.length){
+  /* ★ 예정이 없으면 「전화만」이 있어도 먼저 알려준다.
+     달력이 안 그려진 채 목록만 뜨면 무엇이 잘못됐는지 알 수 없다. */
+  if(!wait.length){
     h+='<div class="soon"><div class="big">예정된 발송이 없습니다</div>'
-      +'시트에서 [발송게이트] → [② 발송계획 세우기] 를 눌러 주세요.</div>';
-    el.innerHTML=h; return;
+      +'시트에서 [발송게이트] → [② 발송계획 세우기] 를 눌러 주세요.'
+      +(only.length?'<div style="margin-top:6px">문자 불가 '+only.length+'건은 아래에 있습니다.</div>':'')
+      +'</div>';
+    if(only.length){
+      h+='<div style="font-size:15px;font-weight:800;color:var(--muted);margin:18px 0 8px">문자 불가 '+only.length+'건 — 전화로만 가능</div>';
+      h+='<div class="card">';
+      only.slice(0,30).forEach(function(r){ h+=gateLine(r,true); });
+      if(only.length>30) h+='<div style="font-size:14px;color:var(--muted);padding-top:4px">… 외 '+(only.length-30)+'명</div>';
+      h+='</div>';
+    }
+    el.innerHTML=h;
+    var c1=document.getElementById('cnt-gate');
+    if(c1) c1.textContent='–';
+    return;
   }
 
   /* ★ 거르개 — 봇 · 검색. 견적 탭과 같은 자리에 둔다. */
@@ -1772,17 +1786,29 @@ function renderGate(st,pl){
     return;
   }
 
-  /* ★ 달력 */
-  h+=gateCal(wait.filter(gateBotOk));
+  /* ★ 달력 — 고른 봇에 예정이 없으면 안내한다 */
+  var ws0=wait.filter(gateBotOk);
+  if(!ws0.length){
+    h+='<div class="soon"><div class="big">'
+      +(GATE_BOT?GATE_BOT+'봇은 예정된 발송이 없습니다':'예정된 발송이 없습니다')+'</div>'
+      +(GATE_BOT==='케어'
+        ? '케어 문자는 광고성이라 수신동의가 없고 이사 후 6개월이 지나면 문자로 못 나갑니다.<br>'
+          +'아래 「문자 불가」 목록을 보시거나, 문안을 안부로 바꿔 광고가 아닌 것으로 돌리면 나갑니다.'
+        : '시트에서 [발송게이트] → [② 발송계획 세우기] 를 눌러 주세요.')
+      +'</div>';
+  } else {
+    h+=gateCal(ws0);
+  }
 
   /* 고른 날의 명단이 여기 들어간다 */
   h+='<div id="gate-day"></div>';
 
-  if(only.length){
-    h+='<div style="font-size:15px;font-weight:800;color:var(--muted);margin:18px 0 8px">문자 불가 '+only.length+'건 — 전화로만 가능</div>';
+  var only2=only.filter(gateBotOk);
+  if(only2.length){
+    h+='<div style="font-size:15px;font-weight:800;color:var(--muted);margin:18px 0 8px">문자 불가 '+only2.length+'건 — 전화로만 가능</div>';
     h+='<div class="card">';
-    only.slice(0,30).forEach(function(r){ h+=gateLine(r); });
-    if(only.length>30) h+='<div style="font-size:14px;color:var(--muted);padding-top:4px">… 외 '+(only.length-30)+'명</div>';
+    only2.slice(0,30).forEach(function(r){ h+=gateLine(r,true); });
+    if(only2.length>30) h+='<div style="font-size:14px;color:var(--muted);padding-top:4px">… 외 '+(only2.length-30)+'명</div>';
     h+='</div>';
   }
 
