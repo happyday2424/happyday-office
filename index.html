@@ -455,7 +455,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v34 · 0906-2140</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v35 · 0909-1915</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -1713,12 +1713,12 @@ function renderGate(st,pl){
   }
   var h='';
 
+  /* 이번 달 요약 */
   h+='<div class="stats"><div class="row1">';
   h+='<div class="pill"><div class="n">'+(st.보냄합||0)+'</div><div class="l">이번달 보냄</div></div>';
   h+='<div class="pill"><div class="n">'+(st.예정합||0)+'</div><div class="l">예정</div></div>';
   h+='<div class="pill"><div class="n">'+(st.전화만||0)+'</div><div class="l">전화만</div></div>';
-  h+='</div>';
-  h+='<div class="ch-title">'+esc(st.ym)+' · 봇별</div><div class="chs">';
+  h+='</div><div class="ch-title">'+esc(st.ym)+' · 봇별</div><div class="chs">';
   ['팔로우','후기','케어'].forEach(function(b){
     var s1=(st.보냄&&st.보냄[b])||0, s2=(st.예정&&st.예정[b])||0;
     if(!s1&&!s2) return;
@@ -1729,6 +1729,7 @@ function renderGate(st,pl){
   h+='</div></div>';
 
   var rows=(pl&&pl.ok&&pl.rows)?pl.rows:[];
+  GATE_ROWS=rows;
   var wait=rows.filter(function(r){return r.state==='대기';});
   var only=rows.filter(function(r){return String(r.state).indexOf('전화만')===0;});
 
@@ -1738,34 +1739,16 @@ function renderGate(st,pl){
     el.innerHTML=h; return;
   }
 
-  var byDay={};
-  wait.forEach(function(r){ (byDay[r.date]=byDay[r.date]||[]).push(r); });
-  var days=Object.keys(byDay).sort();
+  /* ★ 달력 — 이번 달과 다음 달 */
+  h+=gateCal(wait);
 
-  h+='<div style="font-size:15px;font-weight:800;color:var(--muted);margin:16px 0 8px">다가오는 발송 '+wait.length+'건</div>';
-  days.slice(0,14).forEach(function(d){
-    var arr=byDay[d];
-    h+='<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
-      +'<b style="font-size:16.5px;color:var(--navy)">'+dmd(d)+'</b>'
-      +'<span style="font-size:14px;color:var(--muted);font-weight:800">'+arr.length+'명</span></div>';
-    arr.slice(0,20).forEach(function(r){
-      var m=BOTMARK[r.bot]||{c:'#888'};
-      h+='<div style="display:flex;align-items:center;gap:7px;padding:5px 0;font-size:15px">'
-        +'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+m.c+';flex:none"></span>'
-        +'<b>'+esc(r.rule)+'</b><span style="color:var(--muted)">'+esc(r.name||'고객')+' '+esc(r.phone||'')+'</span></div>';
-    });
-    if(arr.length>20) h+='<div style="font-size:14px;color:var(--muted);padding-top:4px">… 외 '+(arr.length-20)+'명</div>';
-    h+='</div>';
-  });
-  if(days.length>14) h+='<div class="soon">… 외 '+(days.length-14)+'일치가 더 있습니다</div>';
+  /* 고른 날의 명단이 여기 들어간다 */
+  h+='<div id="gate-day"></div>';
 
   if(only.length){
-    h+='<div style="font-size:15px;font-weight:800;color:var(--muted);margin:16px 0 8px">문자 불가 '+only.length+'건 — 전화로만 가능</div>';
+    h+='<div style="font-size:15px;font-weight:800;color:var(--muted);margin:18px 0 8px">문자 불가 '+only.length+'건 — 전화로만 가능</div>';
     h+='<div class="card">';
-    only.slice(0,30).forEach(function(r){
-      h+='<div style="padding:5px 0;font-size:15px"><b>'+esc(r.name||'고객')+'</b> '+esc(r.phone||'')
-        +' <span style="color:var(--muted);font-size:14px">'+esc(r.state)+'</span></div>';
-    });
+    only.slice(0,30).forEach(function(r){ h+=gateLine(r); });
     if(only.length>30) h+='<div style="font-size:14px;color:var(--muted);padding-top:4px">… 외 '+(only.length-30)+'명</div>';
     h+='</div>';
   }
@@ -1773,6 +1756,91 @@ function renderGate(st,pl){
   el.innerHTML=h;
   var c=document.getElementById('cnt-gate');
   if(c) c.textContent=wait.length||'–';
+
+  /* 가장 가까운 날을 먼저 펼쳐 둔다 */
+  var days=Object.keys(wait.reduce(function(a,r){a[r.date]=1;return a;},{})).sort();
+  if(days.length) gateDay(days[0]);
+}
+
+var GATE_ROWS=[];
+
+/* ★ 달력 — 날짜 칸에 건수를 찍는다. 누르면 그날 명단이 아래 뜬다. */
+function gateCal(wait){
+  var byDay={};
+  wait.forEach(function(r){ (byDay[r.date]=byDay[r.date]||[]).push(r); });
+  var days=Object.keys(byDay).sort();
+  if(!days.length) return '';
+
+  var first=new Date(days[0].slice(0,4), Number(days[0].slice(5,7))-1, 1);
+  var last =new Date(days[days.length-1].slice(0,4), Number(days[days.length-1].slice(5,7))-1, 1);
+  var months=[]; var cur=new Date(first);
+  while(cur<=last && months.length<4){ months.push(new Date(cur)); cur.setMonth(cur.getMonth()+1); }
+
+  var WD=['일','월','화','수','목','금','토'];
+  var h='';
+  months.forEach(function(m){
+    var y=m.getFullYear(), mo=m.getMonth();
+    var start=new Date(y,mo,1).getDay();
+    var end=new Date(y,mo+1,0).getDate();
+    h+='<div class="card" style="margin-bottom:10px">';
+    h+='<div style="font-size:16.5px;font-weight:800;color:var(--navy);margin-bottom:8px">'+y+'년 '+(mo+1)+'월</div>';
+    h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">';
+    WD.forEach(function(w,i){
+      h+='<div style="text-align:center;font-size:12.5px;font-weight:700;padding:3px 0;color:'
+        +(i===0?'#E24B4A':(i===6?'#3B6FD4':'var(--muted)'))+'">'+w+'</div>';
+    });
+    for(var k=0;k<start;k++) h+='<div></div>';
+    for(var d=1;d<=end;d++){
+      var key=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      var n=(byDay[key]||[]).length;
+      var on=n>0;
+      h+='<div'+(on?' onclick="gateDay(\''+key+'\')"':'')
+        +' style="text-align:center;padding:6px 2px;border-radius:8px;cursor:'+(on?'pointer':'default')
+        +';background:'+(on?'#EAF2FF':'transparent')+';border:1px solid '+(on?'#C7DBFF':'transparent')+'">'
+        +'<div style="font-size:13.5px;font-weight:'+(on?'800':'400')+';color:'+(on?'var(--navy)':'#BBB')+'">'+d+'</div>'
+        +(on?'<div style="font-size:11.5px;color:#3B6FD4;font-weight:800">'+n+'</div>':'<div style="height:14px"></div>')
+        +'</div>';
+    }
+    h+='</div></div>';
+  });
+  return h;
+}
+
+/* 하루 명단 — 달력에서 날짜를 누르면 여기 뜬다 */
+function gateDay(key){
+  var box=document.getElementById('gate-day');
+  if(!box) return;
+  var arr=GATE_ROWS.filter(function(r){return r.date===key&&r.state==='대기';});
+  if(!arr.length){ box.innerHTML=''; return; }
+  var h='<div class="card" style="border:1.5px solid #C7DBFF">';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+    +'<b style="font-size:16.5px;color:var(--navy)">'+dmd(key)+'</b>'
+    +'<span style="font-size:14px;color:var(--muted);font-weight:800">'+arr.length+'명</span></div>';
+  arr.forEach(function(r){ h+=gateLine(r); });
+  h+='</div>';
+  box.innerHTML=h;
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ★ 고객 한 줄 — 전화가 왔을 때 누군지 알 수 있어야 한다 */
+function gateLine(r){
+  var m=BOTMARK[r.bot]||{c:'#888'};
+  var h='<div style="padding:8px 0;border-top:1px solid #EEF1F6">';
+  h+='<div style="display:flex;align-items:center;gap:7px;font-size:15px">'
+    +'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+m.c+';flex:none"></span>'
+    +'<b>'+esc(r.rule)+'</b>'
+    +'<a href="tel:'+esc(r.phone)+'" style="color:var(--navy);font-weight:700;text-decoration:none">'+esc(r.phone)+'</a>';
+  if(String(r.state).indexOf('전화만')===0)
+    h+='<span style="font-size:12.5px;color:#E24B4A;font-weight:800">전화만</span>';
+  h+='</div>';
+  var l2=[r.move, (r.from||'')+(r.to?' → '+r.to:'')].filter(Boolean).join('  ');
+  if(l2.trim()) h+='<div style="font-size:14px;color:var(--muted);padding-left:15px">'+esc(l2)+'</div>';
+  var amt=r.amt?Number(String(r.amt).replace(/[^0-9]/g,'')).toLocaleString()+'원':'';
+  var l3=[r.route,amt].filter(Boolean).join('  ');
+  if(l3.trim()) h+='<div style="font-size:14px;color:var(--muted);padding-left:15px">'+esc(l3)+'</div>';
+  if(r.prev) h+='<div style="font-size:13.5px;color:#1D9E75;font-weight:700;padding-left:15px">※ 이전 '+esc(r.prev)+'</div>';
+  h+='</div>';
+  return h;
 }
 
 function renderStatTab(){
