@@ -455,7 +455,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v44 · 0914-2020</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v46 · 0914-2050</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -1711,8 +1711,13 @@ function loadGate(){
     .catch(function(){ renderGate(null,null,null); GATE_LOADED=true; });
 }
 
-var GATE_ST=null, GATE_PH=[];
+var GATE_ST=null, GATE_PH=[], GATE_LOG=[];
 var GATE_ROWS=[], GATE_Q='', GATE_BOT='', GATE_DAY='', GATE_MON='';
+
+function gToday(){
+  var t=new Date();
+  return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+}
 
 function renderGate(st,pl,ph){
   GATE_ST=st;
@@ -1725,25 +1730,27 @@ function renderGate(st,pl,ph){
   }
   var rows=(pl&&pl.ok&&pl.rows)?pl.rows:[];
   GATE_ROWS=rows;
-  var wait=rows.filter(function(r){return r.state==='대기';});
-  var only=GATE_PH;
-
-  var t=new Date();
-  var today=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  var today=gToday();
   var WDN=['일','월','화','수','목','금','토'];
+
+  var wait=rows.filter(function(r){return r.state==='대기';});
+  var sent=rows.filter(function(r){return r.state==='보냄';});
+  var fix =rows.filter(function(r){return r.state==='번호확인';});
+  var only=GATE_PH;
   var late=wait.filter(function(r){return r.date&&r.date<today;});
 
   var h='';
 
-  /* ① 요약 — 어느 달의 무엇인지 적는다 */
+  /* ① 요약 넷 */
   h+='<div class="card" style="margin-bottom:10px">';
   h+='<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px">'
     +'<b style="font-size:17px;color:var(--navy)">'+esc(st.ym||'')+'</b>'
-    +'<span style="font-size:14px;color:var(--muted);font-weight:700">오늘 '+dmd(today)+' ('+WDN[t.getDay()]+')</span></div>';
-  h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
-  h+=gateStatBox('보냄',st.보냄합||0,'#F4F6F9','var(--muted)');
-  h+=gateStatBox('앞으로 나갈 것',wait.length,'#EAF2FF','#1D6FD0');
-  h+=gateStatBox('문자 불가',only.length,'#FDEDEC','#C93B39');
+    +'<span style="font-size:14px;color:var(--muted);font-weight:700">오늘 '+dmd(today)+' ('+WDN[(new Date()).getDay()]+')</span></div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">';
+  h+=gBox('완료',sent.length,'#E6F4EC','#12805C');
+  h+=gBox('예정',wait.length,'#EAF2FF','#1D6FD0');
+  h+=gBox('번호 확인',fix.length,'#FFF6E0','#8A6300','gateFixList()');
+  h+=gBox('문자 불가',only.length,'#FDEDEC','#C93B39');
   h+='</div></div>';
 
   /* ② 지나갔는데 안 나간 것 */
@@ -1751,13 +1758,11 @@ function renderGate(st,pl,ph){
     h+='<div style="background:#FFF6E0;border:1px solid #F0D48A;border-radius:10px;'
       +'padding:10px 13px;margin-bottom:10px;display:flex;align-items:center;gap:9px;flex-wrap:wrap">'
       +'<b style="font-size:15px;color:#8A6300">지나갔는데 안 나간 것 '+late.length+'건</b>'
-      +'<span style="font-size:14px;color:#8A6300">'+dmd(late[0].date)+' ~ '+dmd(late[late.length-1].date)+'</span>'
       +'<button onclick="gatePull()" style="margin-left:auto;padding:5px 12px;border:1px solid #D8B75E;'
-      +'background:#fff;border-radius:8px;font-size:14px;font-weight:800;color:#8A6300;font-family:inherit">오늘로 당기기</button>'
-      +'</div>';
+      +'background:#fff;border-radius:8px;font-size:14px;font-weight:800;color:#8A6300;font-family:inherit">오늘로 당기기</button></div>';
   }
 
-  if(!wait.length&&!only.length){
+  if(!rows.length&&!only.length){
     h+='<div class="soon"><div class="big">예정된 발송이 없습니다</div>'
       +'시트에서 [발송게이트] → [② 발송계획 세우기] 를 눌러 주세요.</div>';
     el.innerHTML=h;
@@ -1765,7 +1770,7 @@ function renderGate(st,pl,ph){
     return;
   }
 
-  /* ③ 봇 거르개 + 검색 */
+  /* ③ 거르개 · 검색 */
   h+='<div class="hitrange">';
   [['','전체'],['팔로우','팔로우'],['후기','후기'],['케어','케어']].forEach(function(x){
     var dot=x[0]?'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'
@@ -1773,15 +1778,13 @@ function renderGate(st,pl,ph){
     h+='<button class="hchip'+(GATE_BOT===x[0]?' on':'')+'" onclick="gateBot(\''+x[0]+'\')">'+dot+x[1]+'</button>';
   });
   h+='</div>';
-  h+='<div style="margin:4px 2px 10px">'
-    +'<input id="gateQ" value="'+esc(GATE_Q)+'" placeholder="번호 뒷자리 · 규칙 · 지역으로 찾기" '
-    +'oninput="gateFind(this.value)" '
+  h+='<div style="margin:4px 2px 10px"><input id="gateQ" value="'+esc(GATE_Q)+'" '
+    +'placeholder="번호 뒷자리 · 규칙 · 지역으로 찾기" oninput="gateFind(this.value)" '
     +'style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #DDE3EC;'
     +'border-radius:10px;font-size:15px;font-family:inherit;outline:none"></div>';
 
-  /* 검색 중이면 목록만 */
   if(GATE_Q){
-    var hit=wait.filter(gateMatch), hit2=only.filter(gateMatch);
+    var hit=rows.filter(gateMatch), hit2=only.filter(gateMatch);
     h+='<div style="font-size:15px;font-weight:800;color:var(--muted);margin:10px 0 8px">찾은 것 '+(hit.length+hit2.length)+'건</div>';
     if(hit.length||hit2.length){
       h+='<div class="card">';
@@ -1794,12 +1797,11 @@ function renderGate(st,pl,ph){
     return;
   }
 
-  var ws=wait.filter(gateBotOk);
-
   /* ④ 달력 */
-  if(ws.length) h+=gateCal(ws,today);
+  var use=rows.filter(gateBotOk);
+  if(use.length) h+=gateCal(use,today);
   else h+='<div class="soon"><div class="big">'
-      +(GATE_BOT?GATE_BOT+'봇은 예정된 발송이 없습니다':'예정된 발송이 없습니다')+'</div>'
+      +(GATE_BOT?GATE_BOT+'봇은 계획이 없습니다':'계획이 없습니다')+'</div>'
       +(GATE_BOT==='케어'
         ? '케어 문자는 광고성이라 수신동의가 없고 이사 후 6개월이 지나면 못 나갑니다.<br>'
           +'<b>[문안] 의 권유 문구를 빼고 [케어규칙] 의 광고 칸을 N 으로</b> 바꾸면 문자 대상이 됩니다.'
@@ -1821,25 +1823,18 @@ function renderGate(st,pl,ph){
   var c=document.getElementById('cnt-gate');
   if(c) c.textContent=wait.length||'–';
 
-  var days=Object.keys(ws.reduce(function(a,r){a[r.date]=1;return a;},{})).sort();
+  var days=Object.keys(use.reduce(function(a,r){a[r.date]=1;return a;},{})).sort();
   if(GATE_DAY&&days.indexOf(GATE_DAY)>=0) gateDay(GATE_DAY);
   else if(late.length) gateDay(late[0].date);
+  else if(days.indexOf(today)>=0) gateDay(today);
   else if(days.length) gateDay(days[0]);
 }
 
-function renderGateOld(){
-  document.getElementById('pane-gate').innerHTML=
-    '<div class="soon"><div class="big">시트 스크립트가 옛 판입니다</div>'
-    +'이 화면(v41)은 <b>견적 스크립트 v62 이상</b>과 짝입니다.<br><br>'
-    +'Apps Script 에서 <b>Code.gs 를 v60 으로 바꾸고 [배포] → 새 버전</b>을 눌러 주세요.<br>'
-    +'함수 목록에서 <b>견적_점검</b> 을 실행해 <b>v62 · 0914-2020</b> 이 나오면 맞습니다.</div>';
-  var c=document.getElementById('cnt-gate'); if(c) c.textContent='–';
-}
-
-function gateStatBox(label,n,bg,col){
-  return '<div style="background:'+bg+';border-radius:10px;padding:11px 12px">'
-    +'<div style="font-size:13px;color:'+col+';font-weight:700">'+label+'</div>'
-    +'<div style="font-size:25px;font-weight:800;color:'+col+';letter-spacing:-.5px">'+n+'</div></div>';
+function gBox(label,n,bg,col,click){
+  return '<div'+(click?' onclick="'+click+'" style="cursor:pointer;':' style="')
+    +'background:'+bg+';border-radius:10px;padding:11px 10px">'
+    +'<div style="font-size:12.5px;color:'+col+';font-weight:700">'+label+'</div>'
+    +'<div style="font-size:24px;font-weight:800;color:'+col+';letter-spacing:-.5px">'+n+'</div></div>';
 }
 
 function gateBotOk(r){ return !GATE_BOT || r.bot===GATE_BOT; }
@@ -1864,47 +1859,53 @@ function gatePull(){
   fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gatePull&_='+Date.now())
     .then(function(r){return r.json();})
     .then(function(j){ alert((j&&j.msg)||'옮겼습니다.'); GATE_LOADED=false; loadGate(); })
-    .catch(function(){ alert('옮기지 못했습니다. 잠시 뒤 다시 해주세요.'); });
+    .catch(function(){ alert('옮기지 못했습니다.'); });
 }
 
-/* ★ 달력 — 한 달 전체를 그린다. 지난 날도 그린다. */
-function gateCal(ws,today){
+/* ★ 달력 — 한 칸에 「결과/계획 (%)」 */
+function gateCal(use,today){
   var byDay={};
-  ws.forEach(function(r){ (byDay[r.date]=byDay[r.date]||[]).push(r); });
+  use.forEach(function(r){ (byDay[r.date]=byDay[r.date]||[]).push(r); });
   var days=Object.keys(byDay).sort();
   if(!days.length) return '';
 
-  var months=[], seen={};
+  var months=[],seen={};
   days.forEach(function(d){ var k=d.slice(0,7); if(!seen[k]){seen[k]=1;months.push(k);} });
   var tk=today.slice(0,7);
   if(months.indexOf(tk)<0){ months.push(tk); months.sort(); }
   if(!GATE_MON||months.indexOf(GATE_MON)<0) GATE_MON=(months.indexOf(tk)>=0?tk:months[0]);
 
   var at=months.indexOf(GATE_MON);
-  var WD=['일','월','화','수','목','금','토'];
   var y=+GATE_MON.slice(0,4), mo=+GATE_MON.slice(5,7)-1;
   var start=new Date(y,mo,1).getDay(), end=new Date(y,mo+1,0).getDate();
 
-  var h='<div class="card" style="margin-bottom:10px">';
+  /* 그 달 합계 — 지난 날만 센다 */
+  var mp=0,ms=0;
+  use.forEach(function(r){
+    if(r.date.slice(0,7)!==GATE_MON) return;
+    if(r.date>=today) return;
+    mp++; if(r.state==='보냄') ms++;
+  });
+  var mr=mp?Math.round(ms/mp*100):0;
 
-  /* 달 넘기기 — 이미 받아둔 것이라 다시 안 부른다 */
-  h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">';
+  var h='<div class="card" style="margin-bottom:10px">';
+  h+='<div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;flex-wrap:wrap">';
   h+='<button onclick="gateMon(-1)" '+(at<=0?'disabled ':'')
     +'style="padding:4px 11px;border:1px solid #DDE3EC;background:#fff;border-radius:8px;'
     +'font-size:15px;font-family:inherit;color:'+(at<=0?'#CCC':'var(--navy)')+'">‹</button>';
-  h+='<b style="font-size:16.5px;color:var(--navy)">'+y+'년 '+(mo+1)+'월</b>';
+  h+='<b style="font-size:16.5px;color:var(--navy)">'+(mo+1)+'월</b>';
   h+='<button onclick="gateMon(1)" '+(at>=months.length-1?'disabled ':'')
     +'style="padding:4px 11px;border:1px solid #DDE3EC;background:#fff;border-radius:8px;'
     +'font-size:15px;font-family:inherit;color:'+(at>=months.length-1?'#CCC':'var(--navy)')+'">›</button>';
-  h+='<span style="margin-left:auto;display:flex;gap:11px;font-size:13px;color:var(--muted);font-weight:700">';
-  ['팔로우','후기','케어'].forEach(function(b){
-    h+='<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'
-      +((BOTMARK[b]||{}).c||'#888')+';margin-right:4px"></span>'+b+'</span>';
-  });
-  h+='</span></div>';
+  if(mp) h+='<b style="font-size:15.5px;color:'+(mr>=100?'#12805C':'#8A6300')+'">'+ms+'/'+mp+' ('+mr+'%)</b>';
+  h+='<span style="margin-left:auto;display:flex;gap:9px;font-size:12.5px;color:var(--muted);font-weight:700">'
+    +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#12805C;margin-right:4px"></span>완료</span>'
+    +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D8A21E;margin-right:4px"></span>미완료</span>'
+    +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#3B6FD4;margin-right:4px"></span>예정</span></span>';
+  h+='</div>';
 
   h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">';
-  WD.forEach(function(w,i){
+  ['일','월','화','수','목','금','토'].forEach(function(w,i){
     h+='<div style="text-align:center;font-size:12.5px;font-weight:700;padding:3px 0;color:'
       +(i===0?'#E24B4A':(i===6?'#3B6FD4':'var(--muted)'))+'">'+w+'</div>';
   });
@@ -1912,41 +1913,39 @@ function gateCal(ws,today){
   for(var d=1;d<=end;d++){
     var key=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     var arr=byDay[key]||[];
-    var isToday=(key===today), isLate=(arr.length&&key<today);
-    var bg='transparent', bd='transparent', fc='#BBB';
-    if(isToday){ bg='#EAF2FF'; bd='#7FB0F0'; fc='#1D6FD0'; }
-    else if(isLate){ bg='#FFF6E0'; bd='#F0D48A'; fc='#8A6300'; }
-    else if(arr.length){ bg='#F4F6F9'; bd='#E4E9F0'; fc='var(--navy)'; }
+    var isToday=(key===today), past=(key<today);
+    var n=arr.length;
+    var ok=arr.filter(function(r){return r.state==='보냄';}).length;
 
-    h+='<div'+(arr.length?' onclick="gateDay(\''+key+'\')"':'')
-      +' style="text-align:center;padding:5px 2px;border-radius:8px;min-height:38px;'
-      +'cursor:'+(arr.length?'pointer':'default')+';background:'+bg+';border:'
-      +(isToday?'1.5px':'1px')+' solid '+bd+'">';
-    h+='<div style="font-size:13.5px;font-weight:'+(arr.length||isToday?'800':'400')+';color:'+fc+'">'+d+'</div>';
-    if(isToday&&!arr.length) h+='<div style="font-size:11px;color:#1D6FD0;font-weight:800">오늘</div>';
-    else if(isLate) h+='<div style="font-size:11px;color:#8A6300;font-weight:800">'+arr.length+' 지남</div>';
-    else if(arr.length){
-      var cnt={}; arr.forEach(function(r){ cnt[r.bot]=(cnt[r.bot]||0)+1; });
-      var dots='';
-      ['팔로우','후기','케어'].forEach(function(b){
-        for(var z=0;z<Math.min(cnt[b]||0,4);z++)
-          dots+='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'
-            +((BOTMARK[b]||{}).c||'#888')+';margin:0 1px"></span>';
-      });
-      h+='<div style="line-height:1;margin-top:2px">'+dots+'</div>';
-      if(arr.length>4) h+='<div style="font-size:10.5px;color:var(--muted);font-weight:700">'+arr.length+'</div>';
-    } else h+='<div style="height:14px"></div>';
-    h+='</div>';
+    var bg='transparent',bd='transparent',fc='#BBB',txt='';
+    if(n&&past){
+      var rate=Math.round(ok/n*100);
+      if(rate>=100){ bg='#E6F4EC'; bd='#A8DCC4'; fc='#12805C'; }
+      else { bg='#FFF6E0'; bd='#F0D48A'; fc='#8A6300'; }
+      txt='<div style="font-size:14px;font-weight:800;color:'+fc+';line-height:1.15">'+ok+'/'+n+'</div>'
+         +'<div style="font-size:10.5px;color:'+fc+';font-weight:700">'+rate+'%</div>';
+    } else if(n){
+      bg='#F4F6F9'; bd='#E4E9F0'; fc='var(--navy)';
+      txt='<div style="font-size:15px;font-weight:800;color:#3B6FD4;line-height:1.15">'+n+'</div>';
+    }
+    if(isToday){ bd='#7FB0F0'; if(!n){ bg='#EAF2FF'; fc='#1D6FD0'; txt='<div style="font-size:10.5px;color:#1D6FD0;font-weight:800">오늘</div>'; } }
+
+    h+='<div'+(n?' onclick="gateDay(\''+key+'\')"':'')
+      +' style="text-align:center;padding:5px 2px;border-radius:8px;min-height:42px;'
+      +'cursor:'+(n?'pointer':'default')+';background:'+bg+';border:'
+      +(isToday?'1.5px':'1px')+' solid '+bd+'">'
+      +'<div style="font-size:13px;font-weight:'+(n||isToday?'800':'400')+';color:'+fc+'">'+d+'</div>'
+      +(txt||'<div style="height:15px"></div>')+'</div>';
   }
   h+='</div></div>';
   return h;
 }
 
 function gateMon(step){
-  var ws=GATE_ROWS.filter(function(r){return r.state==='대기'&&gateBotOk(r);});
+  var use=GATE_ROWS.filter(gateBotOk);
   var seen={},months=[];
-  ws.forEach(function(r){ var k=r.date.slice(0,7); if(!seen[k]){seen[k]=1;months.push(k);} });
-  var t=new Date(); var tk=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0');
+  use.forEach(function(r){ var k=r.date.slice(0,7); if(!seen[k]){seen[k]=1;months.push(k);} });
+  var tk=gToday().slice(0,7);
   if(months.indexOf(tk)<0) months.push(tk);
   months.sort();
   var at=months.indexOf(GATE_MON)+step;
@@ -1959,19 +1958,59 @@ function gateDay(key){
   GATE_DAY=key;
   var box=document.getElementById('gate-day');
   if(!box) return;
-  var arr=GATE_ROWS.filter(function(r){return r.date===key&&r.state==='대기'&&gateBotOk(r);});
+  var arr=GATE_ROWS.filter(function(r){return r.date===key&&gateBotOk(r);});
   if(!arr.length){ box.innerHTML=''; return; }
-  var t=new Date();
-  var today=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
-  var late=(key<today);
-  var h='<div class="card" style="border:1.5px solid '+(late?'#F0D48A':'#C7DBFF')+'">';
+  var today=gToday();
+  var ok=arr.filter(function(r){return r.state==='보냄';}).length;
+  var past=(key<today);
+  var rate=arr.length?Math.round(ok/arr.length*100):0;
+  var col=past?(rate>=100?'#A8DCC4':'#F0D48A'):'#C7DBFF';
+  var h='<div class="card" style="border:1.5px solid '+col+'">';
   h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">'
     +'<b style="font-size:16.5px;color:var(--navy)">'+dmd(key)+'</b>'
-    +'<span style="font-size:14px;color:var(--muted);font-weight:800">'+arr.length+'명</span>'
-    +(late?'<span style="font-size:13px;color:#8A6300;font-weight:800">아직 안 나감</span>':'')+'</div>';
+    +(past?'<span style="font-size:14px;font-weight:800;color:'+(rate>=100?'#12805C':'#8A6300')+'">'+ok+'/'+arr.length+' ('+rate+'%)</span>'
+          :'<span style="font-size:14px;color:var(--muted);font-weight:800">예정 '+arr.length+'명</span>')+'</div>';
   arr.forEach(function(r){ h+=gateLine(r); });
   h+='</div>';
   box.innerHTML=h;
+}
+
+/* 번호 확인 명단 */
+function gateFixList(){
+  var arr=GATE_ROWS.filter(function(r){return r.state==='번호확인';});
+  var box=document.getElementById('gate-day');
+  if(!box) return;
+  if(!arr.length){ box.innerHTML='<div class="soon">번호를 고칠 것이 없습니다.</div>'; return; }
+  var h='<div class="card" style="border:1.5px solid #F0D48A">';
+  h+='<div style="font-size:16.5px;font-weight:800;color:#8A6300;margin-bottom:8px">번호 확인 '+arr.length+'건</div>';
+  arr.forEach(function(r){
+    h+=gateLine(r,true);
+    h+='<div style="padding:2px 0 10px 15px;display:flex;gap:6px;flex-wrap:wrap">'
+      +'<input id="fx-'+esc(r.code)+'" placeholder="새 번호 010-0000-0000" '
+      +'style="flex:1;min-width:170px;padding:8px 11px;border:1.5px solid #DDE3EC;border-radius:8px;'
+      +'font-size:15px;font-family:inherit;outline:none">'
+      +'<button onclick="gateFix(\''+esc(r.code)+'\')" '
+      +'style="padding:8px 14px;border:1px solid #D8B75E;background:#fff;border-radius:8px;'
+      +'font-size:14.5px;font-weight:800;color:#8A6300;font-family:inherit">고치기</button></div>';
+  });
+  h+='</div>';
+  box.innerHTML=h;
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function gateFix(code){
+  var el=document.getElementById('fx-'+code);
+  if(!el) return;
+  var tel=el.value.trim();
+  if(!tel){ alert('새 번호를 넣어 주세요.'); el.focus(); return; }
+  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gateFix&code='+encodeURIComponent(code)
+        +'&tel='+encodeURIComponent(tel)+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(j){
+      alert((j&&j.msg)||'고쳤습니다.');
+      if(j&&j.ok){ GATE_LOADED=false; loadGate(); }
+    })
+    .catch(function(){ alert('고치지 못했습니다.'); });
 }
 
 function gateLine(r,showDate){
@@ -1979,10 +2018,15 @@ function gateLine(r,showDate){
   var h='<div style="padding:8px 0;border-top:1px solid #EEF1F6">';
   h+='<div style="display:flex;align-items:center;gap:7px;font-size:15px;flex-wrap:wrap">'
     +'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+m.c+';flex:none"></span>'
-    +(showDate?'<span style="font-size:13.5px;color:#3B6FD4;font-weight:800">'+dmd(r.date)+'</span>':'')
+    +(showDate&&r.date?'<span style="font-size:13.5px;color:#3B6FD4;font-weight:800">'+dmd(r.date)+'</span>':'')
     +'<b>'+esc(r.rule)+'</b>'
     +'<a href="tel:'+esc(r.phone)+'" style="color:var(--navy);font-weight:700;text-decoration:none">'+esc(r.phone)+'</a>';
-  if(r.why) h+='<span style="font-size:12.5px;color:#E24B4A;font-weight:800">'+esc(r.why)+'</span>';
+  if(r.state==='보냄')
+    h+='<span style="font-size:12px;background:#E6F4EC;color:#12805C;padding:1px 8px;border-radius:6px;font-weight:800">완료 '+dmd(r.sent||r.date)+'</span>';
+  else if(r.state==='번호확인')
+    h+='<span style="font-size:12px;background:#FFF6E0;color:#8A6300;padding:1px 8px;border-radius:6px;font-weight:800">번호 확인</span>';
+  else if(r.why)
+    h+='<span style="font-size:12.5px;color:#E24B4A;font-weight:800">'+esc(r.why)+'</span>';
   h+='</div>';
   var l2=[r.move,(r.from||'')+(r.to?' → '+r.to:'')].filter(Boolean).join('  ');
   if(l2.trim()) h+='<div style="font-size:14px;color:var(--muted);padding-left:15px">'+esc(l2)+'</div>';
@@ -1990,6 +2034,8 @@ function gateLine(r,showDate){
   var l3=[r.route,amt].filter(Boolean).join('  ');
   if(l3.trim()) h+='<div style="font-size:14px;color:var(--muted);padding-left:15px">'+esc(l3)+'</div>';
   if(r.prev) h+='<div style="font-size:13.5px;color:#1D9E75;font-weight:700;padding-left:15px">※ 이전 '+esc(r.prev)+'</div>';
+  if(r.state==='번호확인'&&r.why)
+    h+='<div style="font-size:12.5px;color:#8A6300;font-weight:700;padding-left:15px">'+esc(r.why)+' · '+(r.fail||2)+'회 실패</div>';
   h+='</div>';
   return h;
 }
