@@ -455,7 +455,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v41 · 0914-2000</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v44 · 0914-2020</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -1700,7 +1700,11 @@ function loadGate(){
   var u=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gateAll&ym='+ym+'&_='+Date.now();
   fetch(u).then(function(r){return r.json();})
     .then(function(j){
+      /* ★ 스크립트가 짝이 맞는지 먼저 본다.
+         옛 판이면 gateAll 갈래가 없어 빈 응답이 오고, 화면이 전부 0 으로 보인다.
+         그때 무엇이 잘못됐는지 화면이 말해주어야 한다. */
       if(j&&j.ok&&j.stat) renderGate(j.stat,j.plan,j.phone);
+      else if(j&&j.ok&&!j.stat) renderGateOld();
       else renderGate(j,null,null);
       GATE_LOADED=true;
     })
@@ -1821,6 +1825,15 @@ function renderGate(st,pl,ph){
   if(GATE_DAY&&days.indexOf(GATE_DAY)>=0) gateDay(GATE_DAY);
   else if(late.length) gateDay(late[0].date);
   else if(days.length) gateDay(days[0]);
+}
+
+function renderGateOld(){
+  document.getElementById('pane-gate').innerHTML=
+    '<div class="soon"><div class="big">시트 스크립트가 옛 판입니다</div>'
+    +'이 화면(v41)은 <b>견적 스크립트 v62 이상</b>과 짝입니다.<br><br>'
+    +'Apps Script 에서 <b>Code.gs 를 v60 으로 바꾸고 [배포] → 새 버전</b>을 눌러 주세요.<br>'
+    +'함수 목록에서 <b>견적_점검</b> 을 실행해 <b>v62 · 0914-2020</b> 이 나오면 맞습니다.</div>';
+  var c=document.getElementById('cnt-gate'); if(c) c.textContent='–';
 }
 
 function gateStatBox(label,n,bg,col){
