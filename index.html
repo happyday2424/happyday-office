@@ -455,7 +455,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v40 · 0914-1950</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v41 · 0914-2000</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -1696,15 +1696,15 @@ function loadGate(){
   var el=document.getElementById('pane-gate');
   if(!GATE_LOADED) el.innerHTML='<div class="soon">불러오는 중…</div>';
   var ym=(new Date()).toISOString().slice(0,7);
-  var u1=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gateStat&ym='+ym+'&_='+Date.now();
-  var u2=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gatePlan&_='+Date.now();
-  /* ★ 문자로 못 보내는 명단은 계획이 아니라 따로 계산해서 받는다 */
-  var u3=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gatePhone&_='+Date.now();
-  Promise.all([
-    fetch(u1).then(function(r){return r.json();}).catch(function(){return null;}),
-    fetch(u2).then(function(r){return r.json();}).catch(function(){return null;}),
-    fetch(u3).then(function(r){return r.json();}).catch(function(){return null;})
-  ]).then(function(a){ renderGate(a[0],a[1],a[2]); GATE_LOADED=true; });
+  /* ★ 한 번만 부른다 — GAS 는 부를 때마다 깨어나므로 세 번이면 세 배 걸린다 */
+  var u=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gateAll&ym='+ym+'&_='+Date.now();
+  fetch(u).then(function(r){return r.json();})
+    .then(function(j){
+      if(j&&j.ok&&j.stat) renderGate(j.stat,j.plan,j.phone);
+      else renderGate(j,null,null);
+      GATE_LOADED=true;
+    })
+    .catch(function(){ renderGate(null,null,null); GATE_LOADED=true; });
 }
 
 var GATE_ST=null, GATE_PH=[];
