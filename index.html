@@ -455,7 +455,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v58 · 0923-1520</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v60 · 0923-1525</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -1544,7 +1544,12 @@ var STAT_TRIED = 0;   /* 통계 탭에서 자료를 한 번만 부르게 */
    접수일 — 이번 달 문의가 얼마나 들어왔나 (마케팅 성적)
    이사일 — 그 달에 일이 얼마나 잡혔나 (일정·인력)
    ERP 는 이사일 기준이므로, 이사일로 맞춰야 숫자를 견줄 수 있다. */
-var BASIS = 'in';   /* in = 접수일, move = 이사일 */
+var BASIS = 'move';   /* ★ 기본은 이사일.
+
+     접수일로 세면 「이번 달 문의가 얼마나 들어왔나」가 되고,
+     이사일로 세면 「그 달에 일이 얼마나 잡혔나」가 된다.
+     ERP 가 이사일 기준이라, 숫자를 견주려면 이사일이라야 한다.
+     in = 접수일, move = 이사일 */
 
 /* 기준에 맞는 날짜를 뽑는다 */
 /* ═══ 중복 접수 묶기 ═══
@@ -1627,7 +1632,10 @@ function periodBar(withBasis){
        '" data-punit="'+u[0]+'">'+u[1]+'</button>';
   });
   h+='</div><div class="prow sub">';
-  for(var i=0;i<6;i++){
+  /* ★ 월은 열두 개를 만든다 — 1년 전 같은 달과 견주려면 열둘이 있어야 한다.
+     분기는 여덟(2년), 반기·연도는 여섯이면 충분하다. */
+  var 개수 = (PERIOD.unit==='month') ? 12 : (PERIOD.unit==='quarter' ? 8 : 6);
+  for(var i=0;i<개수;i++){
     var p=periodOf(PERIOD.unit,i);
     h+='<button type="button" class="pchip sm'+(PERIOD.back===i?' on':'')+
        '" data-pback="'+i+'">'+esc(p.name)+'</button>';
