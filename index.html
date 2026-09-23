@@ -248,6 +248,17 @@
   .pbar{margin:2px 0 12px}
   .prow{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
   .prow.sub{margin-top:6px}
+  /* ★ 기간 고르기 한 줄 — 드롭다운 셋과 [보기] */
+  .prow.one{gap:6px;flex-wrap:nowrap;align-items:center}
+  .psel{flex:1;min-width:0;height:38px;padding:0 8px;border:1px solid var(--line);
+        border-radius:9px;background:#fff;font-size:14.5px;font-family:inherit;
+        font-weight:700;color:var(--navy);appearance:none;
+        background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23889' stroke-width='1.6' fill='none'/%3E%3C/svg%3E");
+        background-repeat:no-repeat;background-position:right 9px center}
+  .psel.wide{flex:1.2}
+  .pgo{flex:none;height:38px;padding:0 15px;border:none;border-radius:9px;
+       background:#1D6FD0;color:#fff;font-size:14.5px;font-weight:800;font-family:inherit}
+  .pgo:active{opacity:.75}
   .prow.bas{margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line)}
   .plbl{font-size:14px;font-weight:800;color:var(--muted);margin-right:3px}
   .pchip{border:1px solid var(--line);background:#fff;color:var(--muted);
@@ -455,7 +466,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v60 · 0923-1525</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v61 · 0923-1550</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -1063,8 +1074,8 @@ function renderReferAll(){
 function renderReferStats(){
   var now=new Date();
   var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  var cur=periodOf(PERIOD.unit,PERIOD.back);
-  var prv=periodOf(PERIOD.unit,PERIOD.back+1);
+  var cur=periodNow();
+  var prv=periodPrev();
   var rows=introRows();
   var cCur=0, cPrv=0, cJi=0, cBu=0;
   rows.forEach(function(r){
@@ -1319,8 +1330,8 @@ function renderRvStat(){
 
   /* 평가(후기링크로 들어온 것) 기준 — 점수만 준 고객까지 전부 */
   var n=0, sum=0, rec=0, low=0, wait=0, pub=0;
-  var cur=periodOf(PERIOD.unit,PERIOD.back);
-  var prv=periodOf(PERIOD.unit,PERIOD.back+1);
+  var cur=periodNow();
+  var prv=periodPrev();
   var mNow=0, mPrev=0;
   RATING.forEach(function(v){
     var a=Number(v.avg)||0;
@@ -1538,7 +1549,17 @@ function loadQuote(){
    월 · 분기 · 반기 · 연도 중에 고르고, 그 안에서 어느 구간인지 고른다.
    무엇을 고르든 「직전 같은 기간」과 견준다.
    ═══════════════════════════════════════════════ */
-var PERIOD = { unit:'month', back:0 };   /* back 0 = 이번, 1 = 직전 */
+/* ★ 연도와 구간을 따로 고른다.
+
+   전에는 「이번 달부터 몇 번째 전」으로 세어서, 2024년까지 가려면
+   칩을 서른 개 늘어놓거나 화살표를 서른 번 눌러야 했다.
+   해가 쌓일수록 화면이 넓어지는 구조였다.
+
+   연도와 구간을 나누면 어느 해 어느 달이든 두 번이면 닿고,
+   화면은 스무 해가 지나도 한 줄이다.
+
+   span — year / h1 h2 / q1~q4 / m1~m12 */
+var PERIOD = { year: new Date().getFullYear(), span: 'm' + (new Date().getMonth() + 1) };
 var STAT_TRIED = 0;   /* 통계 탭에서 자료를 한 번만 부르게 */
 /* ★ 무엇을 기준으로 셀지
    접수일 — 이번 달 문의가 얼마나 들어왔나 (마케팅 성적)
@@ -1590,58 +1611,98 @@ function basisD(r){
 var BASIS_NAME = { in:'접수일', move:'이사일' };
 
 /* 고른 기간의 시작·끝·이름을 낸다 */
-function periodOf(unit, back){
-  var now=new Date(), y=now.getFullYear(), m=now.getMonth();
-  var from, to, name;
-  if(unit==='month'){
-    var d=new Date(y, m-back, 1);
-    from=d; to=new Date(d.getFullYear(), d.getMonth()+1, 1);
-    name=(d.getFullYear()===y?'':d.getFullYear()+'년 ')+(d.getMonth()+1)+'월';
-  }else if(unit==='quarter'){
-    var q=Math.floor(m/3)-back, qy=y;
-    while(q<0){ q+=4; qy--; }
-    from=new Date(qy, q*3, 1); to=new Date(qy, q*3+3, 1);
-    name=(qy===y?'':qy+'년 ')+(q+1)+'분기';
-  }else if(unit==='half'){
-    var hh=Math.floor(m/6)-back, hy=y;
-    while(hh<0){ hh+=2; hy--; }
-    from=new Date(hy, hh*6, 1); to=new Date(hy, hh*6+6, 1);
-    name=(hy===y?'':hy+'년 ')+(hh===0?'상반기':'하반기');
-  }else{
-    var yy=y-back;
-    from=new Date(yy,0,1); to=new Date(yy+1,0,1);
-    name=yy+'년';
+/* 연도와 구간으로 기간을 만든다 */
+function spanRange(year, span){
+  var s=String(span||'');
+  if(s==='year')  return { from:new Date(year,0,1), to:new Date(year+1,0,1), name:year+'년' };
+  if(s==='h1')    return { from:new Date(year,0,1), to:new Date(year,6,1),  name:year+'년 상반기' };
+  if(s==='h2')    return { from:new Date(year,6,1), to:new Date(year+1,0,1), name:year+'년 하반기' };
+  if(s.charAt(0)==='q'){
+    var q=Number(s.slice(1))-1;
+    return { from:new Date(year,q*3,1), to:new Date(year,q*3+3,1), name:year+'년 '+(q+1)+'분기' };
   }
-  return { from:from, to:to, name:name };
+  var m=Number(s.slice(1))-1;
+  if(isNaN(m)||m<0||m>11) m=new Date().getMonth();
+  return { from:new Date(year,m,1), to:new Date(year,m+1,1), name:year+'년 '+(m+1)+'월' };
 }
 
-var UNITS=[['month','월'],['quarter','분기'],['half','반기'],['year','연도']];
+/* 지금 고른 기간 */
+function periodNow(){ return spanRange(PERIOD.year, PERIOD.span); }
+
+/* 직전 같은 기간 — 9월이면 8월, 3분기면 2분기, 2026년이면 2025년 */
+function periodPrev(){
+  var y=PERIOD.year, s=String(PERIOD.span||'');
+  if(s==='year')  return spanRange(y-1,'year');
+  if(s==='h1')    return spanRange(y-1,'h2');
+  if(s==='h2')    return spanRange(y,'h1');
+  if(s.charAt(0)==='q'){
+    var q=Number(s.slice(1));
+    return (q===1) ? spanRange(y-1,'q4') : spanRange(y,'q'+(q-1));
+  }
+  var m=Number(s.slice(1));
+  return (m===1) ? spanRange(y-1,'m12') : spanRange(y,'m'+(m-1));
+}
+
+/* 자료에 있는 해를 뽑는다 — 없으면 올해만 */
+function yearList(){
+  var ys={}, now=new Date().getFullYear();
+  ys[now]=1;
+  try{
+    (QUOTE||[]).forEach(function(r){
+      [r['이사예정일'], r['접수시각']].forEach(function(v){
+        var m=String(v||'').match(/(20\d\d)/);
+        if(m) ys[Number(m[1])]=1;
+      });
+    });
+  }catch(e){}
+  return Object.keys(ys).map(Number).sort(function(a,b){return b-a;});
+}
+
+var SPANS=[
+  ['year','연간'],
+  ['h1','상반기'],['h2','하반기'],
+  ['q1','1분기'],['q2','2분기'],['q3','3분기'],['q4','4분기'],
+  ['m1','1월'],['m2','2월'],['m3','3월'],['m4','4월'],['m5','5월'],['m6','6월'],
+  ['m7','7월'],['m8','8월'],['m9','9월'],['m10','10월'],['m11','11월'],['m12','12월']
+];
 
 /* 기간 칩 두 줄을 그린다 — 위는 단위, 아래는 어느 구간 */
 function periodBar(withBasis){
-  var h='<div class="pbar">';
-  /* 기준 줄 — 후기 탭은 평가 도착일뿐이라 기준을 물을 게 없다 */
+  /* ★ 드롭다운 셋과 [보기] — 한 줄.
+     고르는 동안은 화면이 안 바뀐다. [보기]를 눌러야 조회한다.
+     무엇을 고르고 있는지 눈에 보여야 하기 때문이다. */
+  var ys=yearList();
+  var h='<div class="pbar"><div class="prow one">';
   if(withBasis!==false){
-    h+='<div class="prow bas"><span class="plbl">기준</span>'+
-       '<button type="button" class="pchip sm'+(BASIS==='in'?' on':'')+'" data-basis="in">접수일</button>'+
-       '<button type="button" class="pchip sm'+(BASIS==='move'?' on':'')+'" data-basis="move">이사일</button></div>';
+    h+='<select class="psel" id="selBasis">'
+      +'<option value="in"'  +(BASIS==='in'  ?' selected':'')+'>접수일</option>'
+      +'<option value="move"'+(BASIS==='move'?' selected':'')+'>이사일</option></select>';
   }
-  h+='<div class="prow">';
-  UNITS.forEach(function(u){
-    h+='<button type="button" class="pchip'+(PERIOD.unit===u[0]?' on':'')+
-       '" data-punit="'+u[0]+'">'+u[1]+'</button>';
+  h+='<select class="psel" id="selYear">';
+  ys.forEach(function(y){ h+='<option value="'+y+'"'+(y===PERIOD.year?' selected':'')+'>'+y+'년</option>'; });
+  h+='</select>';
+  h+='<select class="psel wide" id="selSpan">';
+  SPANS.forEach(function(sp){
+    h+='<option value="'+sp[0]+'"'+(sp[0]===PERIOD.span?' selected':'')+'>'+sp[1]+'</option>';
   });
-  h+='</div><div class="prow sub">';
-  /* ★ 월은 열두 개를 만든다 — 1년 전 같은 달과 견주려면 열둘이 있어야 한다.
-     분기는 여덟(2년), 반기·연도는 여섯이면 충분하다. */
-  var 개수 = (PERIOD.unit==='month') ? 12 : (PERIOD.unit==='quarter' ? 8 : 6);
-  for(var i=0;i<개수;i++){
-    var p=periodOf(PERIOD.unit,i);
-    h+='<button type="button" class="pchip sm'+(PERIOD.back===i?' on':'')+
-       '" data-pback="'+i+'">'+esc(p.name)+'</button>';
-  }
+  h+='</select>';
+  h+='<button type="button" class="pgo" onclick="periodGo()">보기</button>';
   h+='</div></div>';
   return h;
+}
+
+/* [보기] 를 눌렀을 때만 바꾼다 */
+function periodGo(){
+  var b=document.getElementById('selBasis');
+  var y=document.getElementById('selYear');
+  var p=document.getElementById('selSpan');
+  if(b) BASIS=b.value;
+  if(y) PERIOD.year=Number(y.value)||PERIOD.year;
+  if(p) PERIOD.span=p.value||PERIOD.span;
+  try{ renderStats(); }catch(e){}
+  try{ renderReferStats(); }catch(e){}
+  try{ renderRvStat(); }catch(e){}
+  try{ renderStatTab(); }catch(e){}
 }
 
 function ymd2(d){ return (d.getMonth()+1)+'/'+d.getDate(); }
@@ -1655,17 +1716,7 @@ function periodTitle(p, showBasis){
 }
 
 /* 기간 칩 눌렀을 때 — 네 탭 공통 */
-document.addEventListener('click',function(e){
-  var t=e.target.closest?e.target.closest('.pchip'):null;
-  if(!t) return;
-  if(t.dataset.basis){ BASIS=t.dataset.basis; }
-  else if(t.dataset.punit){ PERIOD.unit=t.dataset.punit; PERIOD.back=0; }
-  else if(t.dataset.pback!==undefined){ PERIOD.back=Number(t.dataset.pback); }
-  else return;
-  try{ renderStats(); }catch(e2){}
-  try{ renderReferStats(); }catch(e2){}
-  try{ renderRvStat(); }catch(e2){}
-});
+/* 칩 방식은 periodGo() 로 옮겼다 */
 
 /* ═══ 네 탭이 함께 쓰는 부품 ═══
    증감 뱃지 — 이번 달과 지난 달을 견준다.
@@ -2334,8 +2385,8 @@ function renderStats(){
   var now=new Date();
   var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   /* 실적은 달력 단위로 센다 — 「최근 30일」로 세면 지난달이 섞여 정산이 안 된다 */
-  var cur=periodOf(PERIOD.unit,PERIOD.back);
-  var prv=periodOf(PERIOD.unit,PERIOD.back+1);
+  var cur=periodNow();
+  var prv=periodPrev();
   var cToday=0,cCur=0,cPrv=0,chMonth={};
   uniqQuote().forEach(function(r){
     var d=basisD(r);
