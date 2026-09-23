@@ -466,7 +466,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v61 · 0923-1550</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v63 · 0923-1615</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -513,11 +513,10 @@
 
     <!-- ═══ 반응 탭 · 견적링크에서 손님이 어디를 눌렀나 ═══ -->
     <div id="pane-hit" class="hide">
+      <div id="hitPeriod"></div>
       <div class="hitrange" id="hitRange">
         <button class="hchip on" data-days="1">오늘</button>
         <button class="hchip" data-days="7">최근 7일</button>
-        <button class="hchip" data-days="30">최근 30일</button>
-        <button class="hchip" data-days="90">최근 90일</button>
         <button class="hchip" data-days="month">월별</button>
       </div>
       <div class="hitrange" id="hitFrom"></div>
@@ -656,6 +655,9 @@ var LGFILTER='all';   /* all | 지인소개 | 부동산소개 */
    반응 탭 — 견적링크에서 손님이 어디를 눌렀나
    ═══════════════════════════════════════════════════════ */
 var HIT_DAYS = '1';
+/* ★ 반응 탭의 연도·기간 — 다른 탭과 같은 방식.
+   [오늘]·[최근 7일]은 자주 보는 것이라 칩으로 남긴다. */
+var HIT_P = { year: new Date().getFullYear(), span: 'm' + (new Date().getMonth() + 1) };
 
 var HIT_YM='';   /* 월별에서 고른 달. 비어 있으면 표 전체 */
 var HIT_F='';    /* 어디서 온 손님만 볼지. 비어 있으면 전체 */
@@ -685,6 +687,33 @@ function renderFroms(list){
        esc(x.name)+' '+(x.people||0)+'</button>';
   });
   el.innerHTML=h;
+}
+
+/* 반응 탭 기간 줄 — 드롭다운 둘과 [보기] */
+function hitPeriodBar(){
+  var el=document.getElementById('hitPeriod');
+  if(!el) return;
+  var ys=[], now=new Date().getFullYear();
+  for(var i=0;i<6;i++) ys.push(now-i);
+  var h='<div class="pbar"><div class="prow one">';
+  h+='<select class="psel" id="hitYear">';
+  ys.forEach(function(y){ h+='<option value="'+y+'"'+(y===HIT_P.year?' selected':'')+'>'+y+'년</option>'; });
+  h+='</select><select class="psel wide" id="hitSpan">';
+  SPANS.forEach(function(sp){
+    h+='<option value="'+sp[0]+'"'+(sp[0]===HIT_P.span?' selected':'')+'>'+sp[1]+'</option>';
+  });
+  h+='</select><button type="button" class="pgo" onclick="hitGo()">보기</button>';
+  h+='</div></div>';
+  el.innerHTML=h;
+}
+
+function hitGo(){
+  var y=document.getElementById('hitYear'), p=document.getElementById('hitSpan');
+  if(y) HIT_P.year=Number(y.value)||HIT_P.year;
+  if(p) HIT_P.span=p.value||HIT_P.span;
+  HIT_DAYS='period'; HIT_YM='';
+  document.querySelectorAll('#hitRange .hchip').forEach(function(x){x.classList.remove('on');});
+  loadHit();
 }
 
 function setHitRange(txt){
@@ -739,6 +768,7 @@ function demoMonth(){
 }
 
 function loadHit(){
+  hitPeriodBar();
   var ck=hitKey(), had=HIT_CACHE[ck];
   if(had){ document.getElementById('hitBody').innerHTML=had; }
   busyOn();
@@ -760,7 +790,14 @@ function loadHit(){
       .catch(function(){ renderMonth(null); busyOff(); });
     return;
   }
-  var url=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logStat&days='+HIT_DAYS+'&f='+encodeURIComponent(HIT_F);
+  var url=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logStat&f='+encodeURIComponent(HIT_F);
+  if(HIT_DAYS==='period'){
+    var r=spanRange(HIT_P.year, HIT_P.span);
+    var f=function(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+    url+='&from='+f(r.from)+'&to='+f(new Date(r.to.getTime()-86400000));
+  }else{
+    url+='&days='+HIT_DAYS;
+  }
   fetch(url+'&_='+Date.now()).then(function(r){return r.json();}).then(function(res){
     renderHit(res && res.ok ? res : null); hitSave();
   }).catch(function(){ renderHit(null); busyOff(); });
@@ -933,6 +970,8 @@ function renderHit(d,one){
   /* ★ 어느 날짜를 보고 있는지 적는다 */
   if(one){
     setHitRange((d.ym||'')+' · '+dmd(d.from)+' ~ '+dmd(d.to));
+  }else if(HIT_DAYS==='period'){
+    setHitRange(spanRange(HIT_P.year, HIT_P.span).name+' · '+dmd(d.from)+' ~ '+dmd(d.to));
   }else if(HIT_DAYS==='1'){
     setHitRange(dfull(d.to));
   }else if(d.from&&d.to){
@@ -1536,7 +1575,7 @@ function loadQuote(){
     buildSubtabs();
     renderStats();
     renderQuote();
-    document.getElementById('cnt-quote').textContent=QUOTE.length;
+    document.getElementById('cnt-quote').textContent=QUOTE.filter(inPeriod).length;
     /* 자료가 왔으면 통계 탭도 다시 그린다 (숨겨져 있어도 미리 채워둔다) */
     try{ renderStatTab(); }catch(e){}
   }).catch(function(err){
@@ -1607,6 +1646,18 @@ function uniqQuote(){
 
 function basisD(r){
   return (BASIS==='move') ? parseD(r['이사예정일']) : parseD(findStamp(r));
+}
+
+/* ★ 고른 기간 안에 드는가.
+
+   전에는 기간이 위쪽 통계 상자에만 걸리고 목록은 전체를 보여줬다.
+   8월을 골랐는데 아래가 77건이면 무엇을 보고 있는지 알 수 없다.
+   기간을 고르면 목록도 그 기간만 보여야 한다. */
+function inPeriod(r){
+  var d=basisD(r);
+  if(!d) return false;
+  var p=periodNow();
+  return d>=p.from && d<p.to;
 }
 var BASIS_NAME = { in:'접수일', move:'이사일' };
 
@@ -1699,7 +1750,10 @@ function periodGo(){
   if(b) BASIS=b.value;
   if(y) PERIOD.year=Number(y.value)||PERIOD.year;
   if(p) PERIOD.span=p.value||PERIOD.span;
+  SHOWN=PAGE;
+  try{ buildSubtabs(); }catch(e){}
   try{ renderStats(); }catch(e){}
+  try{ renderQuote(); }catch(e){}
   try{ renderReferStats(); }catch(e){}
   try{ renderRvStat(); }catch(e){}
   try{ renderStatTab(); }catch(e){}
@@ -1998,6 +2052,12 @@ function gateCap(){
     if(j&&j.ok&&GATE_CONF){ GATE_CONF.cap=Number(el.value)||GATE_CONF.cap; gateRedraw(); }
   });
 }
+/* 달력을 그 해 그 달로 옮긴다 */
+function gateJump(y,m){
+  GATE_MON=Number(y)+'-'+String(Number(m)).padStart(2,'0');
+  gateRedraw();
+}
+
 function gateSkip(code,rule,back){
   fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gateSkip'
         +'&code='+encodeURIComponent(code)+'&rule='+encodeURIComponent(rule)
@@ -2075,7 +2135,9 @@ function gateCal(use,today){
   days.forEach(function(d){ var k=d.slice(0,7); if(!seen[k]){seen[k]=1;months.push(k);} });
   var tk=today.slice(0,7);
   if(months.indexOf(tk)<0){ months.push(tk); months.sort(); }
-  if(!GATE_MON||months.indexOf(GATE_MON)<0) GATE_MON=(months.indexOf(tk)>=0?tk:months[0]);
+  /* ★ 처음 열 때만 이번 달로. 자료가 없는 달을 골라도 빈 달력을 보여준다.
+     「그 달엔 아무것도 없다」는 것도 알아야 할 정보다. */
+  if(!GATE_MON) GATE_MON=(months.indexOf(tk)>=0?tk:months[0]);
 
   var at=months.indexOf(GATE_MON);
   var y=+GATE_MON.slice(0,4), mo=+GATE_MON.slice(5,7)-1;
@@ -2092,13 +2154,19 @@ function gateCal(use,today){
 
   var h='<div class="card" style="margin-bottom:10px">';
   h+='<div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;flex-wrap:wrap">';
-  h+='<button onclick="gateMon(-1)" '+(at<=0?'disabled ':'')
-    +'style="padding:4px 11px;border:1px solid #DDE3EC;background:#fff;border-radius:8px;'
-    +'font-size:15px;font-family:inherit;color:'+(at<=0?'#CCC':'var(--navy)')+'">‹</button>';
-  h+='<b style="font-size:16.5px;color:var(--navy)">'+(mo+1)+'월</b>';
-  h+='<button onclick="gateMon(1)" '+(at>=months.length-1?'disabled ':'')
-    +'style="padding:4px 11px;border:1px solid #DDE3EC;background:#fff;border-radius:8px;'
-    +'font-size:15px;font-family:inherit;color:'+(at>=months.length-1?'#CCC':'var(--navy)')+'">›</button>';
+  /* ★ 연도·월 드롭다운 — 다른 탭과 같은 방식.
+     화살표만 있으면 작년 9월로 가는 데 열두 번을 눌러야 한다.
+     달력 자체는 한 달을 그리는 화면이라 그대로 둔다. */
+  var gy=new Date().getFullYear(), gys=[];
+  for(var yi=0; yi<6; yi++) gys.push(gy-yi);
+  if(gys.indexOf(y)<0) gys.push(y);
+  gys.sort(function(a,b){return b-a;});
+  h+='<select class="psel" style="flex:none;width:92px" onchange="gateJump(this.value,'+(mo+1)+')">';
+  gys.forEach(function(yy){ h+='<option value="'+yy+'"'+(yy===y?' selected':'')+'>'+yy+'년</option>'; });
+  h+='</select>';
+  h+='<select class="psel" style="flex:none;width:76px" onchange="gateJump('+y+',this.value)">';
+  for(var mi=1; mi<=12; mi++) h+='<option value="'+mi+'"'+(mi===mo+1?' selected':'')+'>'+mi+'월</option>';
+  h+='</select>';
   if(mp) h+='<b style="font-size:15.5px;color:'+(mr>=100?'#12805C':'#8A6300')+'">'+ms+'/'+mp+' ('+mr+'%)</b>';
   h+='<span style="margin-left:auto;display:flex;gap:9px;font-size:12.5px;color:var(--muted);font-weight:700">'
     +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#12805C;margin-right:4px"></span>완료</span>'
@@ -2433,10 +2501,12 @@ function parseD(v){
 
 /* ★v2 유입경로 칩 — 1단 대분류, 2단 상세 */
 function buildSubtabs(){
+  /* ★ 유입 칩도 고른 기간 안에서 센다 — 위아래 숫자가 맞아야 한다 */
+  var base=QUOTE.filter(inPeriod);
   var ways={};
-  QUOTE.forEach(function(r){ var w=r._main||'기타'; ways[w]=(ways[w]||0)+1; });
+  base.forEach(function(r){ var w=r._main||'기타'; ways[w]=(ways[w]||0)+1; });
   var order=Object.keys(ways).sort(function(a,b){return ways[b]-ways[a];});
-  var h='<button class="st '+(FILTER==='all'?'on':'')+'" onclick="setFilter(\'all\')">전체 '+QUOTE.length+'</button>';
+  var h='<button class="st '+(FILTER==='all'?'on':'')+'" onclick="setFilter(\'all\')">전체 '+base.length+'</button>';
   order.forEach(function(w){
     h+='<button class="st '+(FILTER===w?'on':'')+'" onclick="setFilter(\''+jsq(w)+'\')">'+esc(w)+' '+ways[w]+'</button>';
   });
@@ -2448,7 +2518,7 @@ function buildSubtabs2(){
   var box=document.getElementById('subtabs2');
   if(FILTER==='all'){ box.classList.add('hide'); box.innerHTML=''; return; }
   var det={};
-  QUOTE.forEach(function(r){
+  QUOTE.filter(inPeriod).forEach(function(r){
     if((r._main||'기타')!==FILTER) return;
     var d=r._detail||'(미기재)';
     det[d]=(det[d]||0)+1;
@@ -2533,12 +2603,17 @@ function fmtTime(v){
 
 /* 카드 렌더 */
 function renderQuote(){
+  /* ★ 고른 기간 안에서만 고른다. 검색 중일 때는 기간을 풀어 전체에서 찾는다. */
   var full = QUOTE.filter(function(r){
     var okWay = (FILTER==='all') || ((r._main||'기타')===FILTER);
     var okDet = (FILTER2==='all') || ((r._detail||'(미기재)')===FILTER2);
-    return okWay && okDet && matchSearch(r);
+    var okPer = SEARCH ? true : inPeriod(r);
+    return okPer && okWay && okDet && matchSearch(r);
   });
-  document.getElementById('quoteCnt').textContent = full.length+'건';
+  /* ★ 무엇을 보고 있는지 적는다 — 검색 중이면 전체에서 찾은 것 */
+  var pn=periodNow().name;
+  document.getElementById('quoteCnt').textContent =
+    SEARCH ? ('전체에서 '+full.length+'건') : (pn+' '+full.length+'건');
 
   if(!full.length){
     document.getElementById('quoteList').innerHTML='<div class="empty"><div class="big">찾는 견적이 없습니다</div>검색어를 지우면 전체가 다시 보입니다.</div>';
