@@ -455,7 +455,7 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v55 · 0915-1555</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v58 · 0923-1520</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -1697,21 +1697,24 @@ function loadGate(){
   if(!GATE_LOADED) el.innerHTML='<div class="soon">불러오는 중…</div>';
   var ym=(new Date()).toISOString().slice(0,7);
   /* ★ 한 번만 부른다 — GAS 는 부를 때마다 깨어나므로 세 번이면 세 배 걸린다 */
-  var u=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gateAll&ym='+ym+'&_='+Date.now();
-  fetch(u).then(function(r){return r.json();})
-    .then(function(j){
-      /* ★ 스크립트가 짝이 맞는지 먼저 본다.
-         옛 판이면 gateAll 갈래가 없어 빈 응답이 오고, 화면이 전부 0 으로 보인다.
-         그때 무엇이 잘못됐는지 화면이 말해주어야 한다. */
-      if(j&&j.ok&&j.stat) renderGate(j.stat,j.plan,j.phone);
-      else if(j&&j.ok&&!j.stat) renderGateOld();
-      else renderGate(j,null,null);
-      GATE_LOADED=true;
-    })
-    .catch(function(){ renderGate(null,null,null); GATE_LOADED=true; });
+  var u =GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gateAll&ym='+ym+'&_='+Date.now();
+  var u2=GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gateConf&_='+Date.now();
+  Promise.all([
+    fetch(u ).then(function(r){return r.json();}).catch(function(){return null;}),
+    fetch(u2).then(function(r){return r.json();}).catch(function(){return null;})
+  ]).then(function(a){
+    var j=a[0];
+    if(a[1]&&a[1].ok) GATE_CONF=a[1];
+    /* ★ 스크립트가 짝이 맞는지 먼저 본다.
+       옛 판이면 gateAll 갈래가 없어 빈 응답이 오고, 화면이 전부 0 으로 보인다. */
+    if(j&&j.ok&&j.stat) renderGate(j.stat,j.plan,j.phone);
+    else if(j&&j.ok&&!j.stat) renderGateOld();
+    else renderGate(j,null,null);
+    GATE_LOADED=true;
+  });
 }
 
-var GATE_ST=null, GATE_PH=[], GATE_LOG=[];
+var GATE_ST=null, GATE_PH=[], GATE_LOG=[], GATE_CONF=null, GATE_SETOPEN=false;
 var GATE_ROWS=[], GATE_Q='', GATE_BOT='', GATE_DAY='', GATE_MON='';
 
 function gToday(){
@@ -1753,6 +1756,24 @@ function renderGate(st,pl,ph){
   h+=gBox('문자 불가',only.length,'#FDEDEC','#C93B39');
   h+='</div></div>';
 
+  /* ★ 오늘 보낼 것 — 확인하고 누르면 그때 나간다 */
+  var 오늘몫=wait.filter(function(r){return r.date&&r.date<=today;});
+  if(오늘몫.length){
+    var 자동=GATE_CONF&&GATE_CONF.auto;
+    h+='<div style="background:'+(자동?'#E6F4EC':'#EAF2FF')+';border:1px solid '
+      +(자동?'#A8DCC4':'#C7DBFF')+';border-radius:10px;padding:11px 13px;margin-bottom:10px">'
+      +'<div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">'
+      +'<b style="font-size:15.5px;color:'+(자동?'#12805C':'#1D6FD0')+'">오늘 보낼 것 '+오늘몫.length+'건</b>'
+      +'<span style="font-size:13.5px;color:var(--muted)">'
+      +(자동?'아침 10시에 저절로 나갑니다':'★ 아직 안 나갔습니다')+'</span>'
+      +'<button onclick="gateSendNow('+오늘몫.length+')" '
+      +'style="margin-left:auto;padding:6px 14px;border:none;border-radius:8px;'
+      +'background:'+(자동?'#12805C':'#1D6FD0')+';color:#fff;font-size:14.5px;font-weight:800;'
+      +'font-family:inherit">지금 보내기</button></div>';
+    h+='<div style="margin-top:6px;font-size:13px;color:var(--muted)">'
+      +'누르기 전에 아래 명단을 확인하세요. 누르면 되돌릴 수 없습니다.</div></div>';
+  }
+
   /* ② 지나갔는데 안 나간 것 */
   if(late.length){
     h+='<div style="background:#FFF6E0;border:1px solid #F0D48A;border-radius:10px;'
@@ -1770,7 +1791,10 @@ function renderGate(st,pl,ph){
     return;
   }
 
-  /* ③ 거르개 · 검색 */
+  /* ③ 설정 — 시트를 열지 않아도 되게 */
+  h+=gateConfBox();
+
+  /* ④ 거르개 · 검색 */
   h+='<div class="hitrange">';
   [['','전체'],['팔로우','팔로우'],['후기','후기'],['케어','케어']].forEach(function(x){
     var dot=x[0]?'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'
@@ -1830,6 +1854,125 @@ function renderGate(st,pl,ph){
   else if(days.length) gateDay(days[0]);
 }
 
+/* ★ 설정 — 규칙 켜고 끄기 · 하루한도 · 자동발송.
+   탭이 열일곱 개인 시트를 폰으로 열 수 없으니 여기서 만진다. */
+function gateConfBox(){
+  var c=GATE_CONF;
+  if(!c) return '';
+  var h='<div class="card" style="margin-bottom:10px">';
+  h+='<div onclick="gateSetToggle()" style="display:flex;align-items:center;gap:8px;cursor:pointer">'
+    +'<b style="font-size:16px;color:var(--navy)">설정</b>'
+    +'<span style="font-size:13.5px;color:var(--muted);font-weight:700">'
+    +'하루 '+c.cap+'명 · '+(c.auto?'자동발송 켜짐':'자동발송 꺼짐')
+    +' · 규칙 '+c.rules.filter(function(r){return r.on;}).length+'/'+c.rules.length+'</span>'
+    +'<span style="margin-left:auto;font-size:15px;color:var(--muted)">'+(GATE_SETOPEN?'▲':'▼')+'</span></div>';
+
+  if(GATE_SETOPEN){
+    /* 자동발송 */
+    h+='<div style="margin-top:12px;padding:10px 12px;border-radius:10px;background:'
+      +(c.auto?'#FDEDEC':'#F4F6F9')+'">'
+      +'<div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">'
+      +'<b style="font-size:15px;color:'+(c.auto?'#C93B39':'var(--navy)')+'">자동발송</b>'
+      +'<span style="font-size:13.5px;color:var(--muted)">'
+      +(c.auto?'★ 고객에게 실제로 문자가 나갑니다':'텔레그램까지만 갑니다')+'</span>'
+      +'<button onclick="gateAuto('+(c.auto?'false':'true')+')" '
+      +'style="margin-left:auto;padding:5px 13px;border:1px solid '+(c.auto?'#E0A5A3':'#C7DBFF')+';'
+      +'background:#fff;border-radius:8px;font-size:14px;font-weight:800;font-family:inherit;color:'
+      +(c.auto?'#C93B39':'#1D6FD0')+'">'+(c.auto?'끄기':'켜기')+'</button></div></div>';
+
+    /* 하루 한도 */
+    h+='<div style="margin-top:8px;padding:10px 12px;border-radius:10px;background:#F4F6F9;'
+      +'display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+      +'<b style="font-size:15px;color:var(--navy)">하루 한도</b>'
+      +'<span style="font-size:13.5px;color:var(--muted)">케어만 적용</span>'
+      +'<input id="capIn" type="number" value="'+c.cap+'" min="1" max="500" '
+      +'style="margin-left:auto;width:74px;padding:6px 9px;border:1.5px solid #DDE3EC;'
+      +'border-radius:8px;font-size:15px;font-family:inherit;text-align:center">'
+      +'<button onclick="gateCap()" style="padding:6px 13px;border:1px solid #C7DBFF;background:#fff;'
+      +'border-radius:8px;font-size:14px;font-weight:800;font-family:inherit;color:#1D6FD0">바꾸기</button></div>';
+
+    /* 규칙 */
+    h+='<div style="margin-top:12px;font-size:14px;font-weight:800;color:var(--muted)">규칙</div>';
+    ['팔로우','후기','케어'].forEach(function(b){
+      var arr=c.rules.filter(function(r){return r.bot===b;});
+      if(!arr.length) return;
+      h+='<div style="margin-top:8px;display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--muted);font-weight:700">'
+        +'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'
+        +((BOTMARK[b]||{}).c||'#888')+'"></span>'+b+'</div>';
+      arr.forEach(function(r){
+        h+='<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid #EEF1F6">'
+          +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:14.5px;font-weight:'+(r.on?'800':'400')+';color:'+(r.on?'var(--navy)':'#999')+'">'+esc(r.name)+'</div>'
+          +'<div style="font-size:12.5px;color:var(--muted)">'+esc(r.memo||(r.cond||''))+'</div></div>'
+          +'<button onclick="gateRule(\''+esc(r.name)+'\','+(r.on?'false':'true')+')" '
+          +'style="flex:none;padding:5px 12px;border:1px solid '+(r.on?'#A8DCC4':'#DDE3EC')+';'
+          +'background:'+(r.on?'#E6F4EC':'#fff')+';border-radius:999px;font-size:13.5px;font-weight:800;'
+          +'font-family:inherit;color:'+(r.on?'#12805C':'#999')+'">'+(r.on?'켜짐':'꺼짐')+'</button></div>';
+      });
+    });
+    if(c.케어시작) h+='<div style="margin-top:10px;font-size:13px;color:var(--muted)">케어는 '+esc(c.케어시작)+' 부터 나갑니다</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function gateSetToggle(){ GATE_SETOPEN=!GATE_SETOPEN; gateRedraw(); }
+function gateRedraw(){ renderGate(GATE_ST,{ok:true,rows:GATE_ROWS},{ok:true,rows:GATE_PH}); }
+
+function gateCall(qs,done){
+  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&'+qs+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(j){ if(j&&j.msg) alert(j.msg); if(done) done(j); })
+    .catch(function(){ alert('바꾸지 못했습니다.'); });
+}
+function gateRule(name,on){
+  gateCall('tab=gateRule&name='+encodeURIComponent(name)+'&on='+(on?'Y':'N'),function(j){
+    if(j&&j.ok&&GATE_CONF){
+      GATE_CONF.rules.forEach(function(r){ if(r.name===name) r.on=on; });
+      gateRedraw();
+    }
+  });
+}
+function gateCap(){
+  var el=document.getElementById('capIn'); if(!el) return;
+  gateCall('tab=gateCap&cap='+encodeURIComponent(el.value),function(j){
+    if(j&&j.ok&&GATE_CONF){ GATE_CONF.cap=Number(el.value)||GATE_CONF.cap; gateRedraw(); }
+  });
+}
+function gateSkip(code,rule,back){
+  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gateSkip'
+        +'&code='+encodeURIComponent(code)+'&rule='+encodeURIComponent(rule)
+        +'&on='+(back?'Y':'N')+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(j){
+      if(j&&j.ok){
+        GATE_ROWS.forEach(function(r2){
+          if(r2.code===code&&r2.rule===rule) r2.state=j.state;
+        });
+        gateRedraw();
+      } else alert((j&&j.msg)||'바꾸지 못했습니다.');
+    })
+    .catch(function(){ alert('바꾸지 못했습니다.'); });
+}
+
+function gateSendNow(n){
+  if(!confirm('오늘 몫 '+n+'건을 지금 보냅니다.\n\n★ 고객에게 실제로 문자가 나가며 되돌릴 수 없습니다.\n계속할까요?')) return;
+  if(!confirm('정말 보낼까요?\n\n'+n+'건 · 되돌릴 수 없습니다.')) return;
+  var el=document.getElementById('pane-gate');
+  if(el) el.innerHTML='<div class="soon">보내는 중… 창을 닫지 마세요.</div>';
+  fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=gateSend&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(j){ alert((j&&j.msg)||'보냈습니다.'); GATE_LOADED=false; loadGate(); })
+    .catch(function(){ alert('보내지 못했습니다. 잠시 뒤 다시 확인해 주세요.'); GATE_LOADED=false; loadGate(); });
+}
+
+function gateAuto(on){
+  if(on&&!confirm('자동발송을 켜면 고객에게 실제로 문자가 나갑니다.\n계속할까요?')) return;
+  gateCall('tab=gateAuto&on='+(on?'Y':'N'),function(j){
+    if(j&&j.ok&&GATE_CONF){ GATE_CONF.auto=on; gateRedraw(); }
+  });
+}
+
 function gBox(label,n,bg,col,click){
   return '<div'+(click?' onclick="'+click+'" style="cursor:pointer;':' style="')
     +'background:'+bg+';border-radius:10px;padding:11px 10px">'
@@ -1844,7 +1987,7 @@ function gateMatch(r){
   if(!q) return true;
   return [r.phone,r.rule,r.from,r.to,r.route,r.code,r.move,r.prev].join(' ').toLowerCase().indexOf(q)>=0;
 }
-function gateBot(b){ GATE_BOT=b; renderGate(GATE_ST,{ok:true,rows:GATE_ROWS},{ok:true,rows:GATE_PH}); }
+function gateBot(b){ GATE_BOT=b; gateRedraw(); }
 function gateFind(q){
   GATE_Q=q; clearTimeout(window._gt);
   window._gt=setTimeout(function(){
@@ -1962,15 +2105,19 @@ function gateDay(key){
   if(!arr.length){ box.innerHTML=''; return; }
   var today=gToday();
   var ok=arr.filter(function(r){return r.state==='보냄';}).length;
+  var 대기=arr.filter(function(r){return r.state==='대기';}).length;
+  var 뺀것=arr.filter(function(r){return r.state==='건너뜀';}).length;
   var past=(key<today);
-  var rate=arr.length?Math.round(ok/arr.length*100):0;
+  var 셈=arr.length-뺀것;                       /* 뺀 것은 분모에서 제외 */
+  var rate=셈?Math.round(ok/셈*100):0;
   var col=past?(rate>=100?'#A8DCC4':'#F0D48A'):'#C7DBFF';
   var h='<div class="card" style="border:1.5px solid '+col+'">';
   h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">'
     +'<b style="font-size:16.5px;color:var(--navy)">'+dmd(key)+'</b>'
-    +(past?'<span style="font-size:14px;font-weight:800;color:'+(rate>=100?'#12805C':'#8A6300')+'">'+ok+'/'+arr.length+' ('+rate+'%)</span>'
-          :'<span style="font-size:14px;color:var(--muted);font-weight:800">예정 '+arr.length+'명</span>')+'</div>';
-  arr.forEach(function(r){ h+=gateLine(r); });
+    +(past?'<span style="font-size:14px;font-weight:800;color:'+(rate>=100?'#12805C':'#8A6300')+'">'+ok+'/'+셈+' ('+rate+'%)</span>'
+          :'<span style="font-size:14px;color:var(--muted);font-weight:800">예정 '+대기+'명</span>')
+    +(뺀것?'<span style="font-size:13px;color:#999;font-weight:700">뺀 것 '+뺀것+'</span>':'')+'</div>';
+  arr.forEach(function(r){ h+=gateLine(r,false,true); });
   h+='</div>';
   box.innerHTML=h;
 }
@@ -2013,7 +2160,7 @@ function gateFix(code){
     .catch(function(){ alert('고치지 못했습니다.'); });
 }
 
-function gateLine(r,showDate){
+function gateLine(r,showDate,canSkip){
   var m=BOTMARK[r.bot]||{c:'#888'};
   var h='<div style="padding:8px 0;border-top:1px solid #EEF1F6">';
   h+='<div style="display:flex;align-items:center;gap:7px;font-size:15px;flex-wrap:wrap">'
@@ -2034,6 +2181,18 @@ function gateLine(r,showDate){
   var l3=[r.route,amt].filter(Boolean).join('  ');
   if(l3.trim()) h+='<div style="font-size:14px;color:var(--muted);padding-left:15px">'+esc(l3)+'</div>';
   if(r.prev) h+='<div style="font-size:13.5px;color:#1D9E75;font-weight:700;padding-left:15px">※ 이전 '+esc(r.prev)+'</div>';
+  /* ★ 건별로 빼기 — 이사가 매끄럽지 않았던 건은 후기를 조르면 역효과다 */
+  if(canSkip&&(r.state==='대기'||r.state==='건너뜀')){
+    var 뺌=(r.state==='건너뜀');
+    h+='<div style="padding:4px 0 2px 15px">'
+      +'<button onclick="gateSkip(\''+esc(r.code)+'\',\''+esc(r.rule)+'\','+(뺌?'true':'false')+')" '
+      +'style="padding:4px 11px;border:1px solid '+(뺌?'#DDE3EC':'#F0D48A')+';'
+      +'background:'+(뺌?'#F4F6F9':'#fff')+';border-radius:999px;font-size:13px;font-weight:800;'
+      +'font-family:inherit;color:'+(뺌?'#999':'#8A6300')+'">'
+      +(뺌?'↩ 다시 보내기':'이 건은 빼기')+'</button>'
+      +(뺌?'<span style="font-size:12.5px;color:#999;margin-left:7px">안 나갑니다</span>':'')
+      +'</div>';
+  }
   if(r.state==='번호확인'&&r.why)
     h+='<div style="font-size:12.5px;color:#8A6300;font-weight:700;padding-left:15px">'+esc(r.why)+' · '+(r.fail||2)+'회 실패</div>';
   h+='</div>';
