@@ -20,8 +20,20 @@
     padding:0 0 40px}
   .top{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;
     padding:12px 14px 0}
-  .top h1{margin:0 0 10px;font-size:19px;font-weight:800;display:flex;align-items:center;gap:8px}
-  .top h1 .r{margin-left:auto;font-size:13.5px;font-weight:600;opacity:.7}
+  /* ★v65 머리줄을 두 줄로 나눈다 (대표 지시 2026-09-28).
+     폰 390px 에서 제목·판·시계·잠그기가 한 줄에 다 안 들어가
+     「해피데이 · 사 / 무실」, 「잠그 / 기」로 낱글자가 뭉갰다.
+     윗줄 = 이름 + 잠그기 / 아랫줄 = 판 · 시계.
+     이름이 길어져도 …으로 줄 뿐 줄이 늘지 않는다. */
+  .top h1{margin:0;font-size:19px;font-weight:800;display:flex;align-items:center;gap:8px;
+    white-space:nowrap}
+  .top h1 .nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .top h1 .lk{flex:0 0 auto;border:none;background:rgba(255,255,255,.15);color:#fff;
+    border-radius:7px;padding:6px 12px;font-size:14px;font-weight:700;cursor:pointer;
+    font-family:inherit;white-space:nowrap}
+  .top .sub{margin:5px 0 10px;font-size:13.5px;font-weight:600;opacity:.6;
+    display:flex;align-items:center;gap:8px;white-space:nowrap}
+  .top .sub .r{margin-left:auto}
   /* 탭 — 폭이 모자라면 저절로 아랫줄로. 옆으로 미는 스크롤을 쓰지 않는다.
      메뉴가 여덟 개, 열 개로 늘어도 전부 한눈에 보인다. */
   .tabs{display:flex;gap:4px;flex-wrap:wrap;overflow:visible;padding-bottom:0}
@@ -53,6 +65,38 @@
   .stats .chs{display:flex;flex-wrap:wrap;gap:6px}
   .stats .ch{background:var(--acBg,var(--navyBg));color:var(--navy);border-radius:999px;padding:5px 11px;font-size:14px;font-weight:700}
   .stats .ch b{color:var(--ac,var(--teal));margin-left:3px}
+  /* ═══ ★v67 견적 탭 머리 — 이사 달 넉 칸 ═══ */
+  /* 오늘 들어온 문의 — 접수일을 보는 곳은 여기 한 줄뿐이다 */
+  .stats .tdy{display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+    background:var(--blueBg);border-radius:10px;padding:10px 12px;margin-bottom:11px}
+  .stats .tdy .h{font-size:14.5px;font-weight:800;color:#1D5FB0}
+  .stats .tdy .n{font-size:20px;font-weight:900;color:#1D5FB0}
+  .stats .tdy .g{border:none;font-family:inherit;font-size:13.5px;font-weight:800;
+    background:#fff;color:#1D5FB0;border-radius:999px;padding:5px 11px;cursor:pointer}
+  .stats .tdy .g.none{background:transparent;color:#6E8BAE;font-weight:700;padding:5px 2px}
+  /* 넉 칸 */
+  .stats .m4lbl{font-size:14px;font-weight:800;color:var(--muted);margin-bottom:7px}
+  .stats .m4lbl span{font-weight:700;font-size:13.5px;opacity:.8;margin-left:5px}
+  .stats .m4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+  .stats .mc{border:none;font-family:inherit;cursor:pointer;background:var(--navyBg);
+    border-radius:11px;padding:11px 3px 10px;text-align:center;color:var(--navy);
+    display:flex;flex-direction:column;align-items:center;gap:2px}
+  .stats .mc.on{background:var(--navy);color:#fff}
+  .stats .mc .mm{font-size:13.5px;font-weight:800;color:var(--muted);white-space:nowrap}
+  .stats .mc.on .mm{color:rgba(255,255,255,.72)}
+  .stats .mc .mn{font-size:26px;font-weight:900;letter-spacing:-1px;
+    font-variant-numeric:tabular-nums}
+  .stats .m4tail{font-size:13.5px;font-weight:700;color:var(--muted);margin-bottom:11px;line-height:1.5}
+  .stats .m4tail b{color:var(--navy)}
+  .stats .m4tail b.w{color:var(--coral)}
+  /* 채널 막대 — 갈래가 열다섯이 되어도 한 줄 */
+  .stats .stk{display:flex;height:24px;border-radius:7px;overflow:hidden;margin:1px 0 8px}
+  .stats .stk i{display:block;height:100%}
+  .stats .stlg{display:flex;flex-wrap:wrap;gap:5px 12px;font-size:13.5px;font-weight:700;color:#41506A}
+  .stats .stlg span{display:flex;align-items:center;gap:5px}
+  .stats .stlg em{font-style:normal;width:10px;height:10px;border-radius:3px;display:inline-block}
+  .stats .stlg b{color:var(--navy)}
+  .stats .ch i{font-style:normal;color:var(--muted);font-size:13.5px;margin-left:4px}
   .searchbar{position:relative;margin-bottom:10px}
   /* 검색창 — 회색 바탕. 흰 카드(보는 것)와 확실히 갈린다 */
   .searchbar input{width:100%;box-sizing:border-box;font-size:17px;padding:13px 40px 13px 14px;
@@ -466,7 +510,8 @@
 <!-- 본 화면 -->
 <div id="app" class="hide">
   <div class="top">
-    <h1>해피데이 · 사무실 <span style="font-size:13.5px;font-weight:700;opacity:.55;margin-left:6px">v63 · 0923-1615</span><span class="r" id="clock"></span><button onclick="forgetKey()" style="margin-left:10px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">잠그기</button></h1>
+    <h1><span class="nm">해피데이 · 사무실</span><button class="lk" onclick="forgetKey()">잠그기</button></h1>
+    <div class="sub"><span>v67 · 0928-1505</span><span class="r" id="clock"></span></div>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -776,7 +821,7 @@ function loadHit(){
     if(HIT_YM){
       /* 달을 골랐으면 그 달만 자세히 */
       setHitRange('');
-      fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logOne&ym='+encodeURIComponent(HIT_YM+'&_='+Date.now())+'&f='+encodeURIComponent(HIT_F))
+      fetch(GAS_URL+'?key='+encodeURIComponent(KEY)+'&tab=logOne&ym='+encodeURIComponent(HIT_YM)+'&f='+encodeURIComponent(HIT_F)+'&_='+Date.now())
         .then(function(r){return r.json();}).then(function(res){
           renderHit(res && res.ok ? res : null, true); hitSave();
         }).catch(function(){ renderHit(null,true); busyOff(); });
@@ -1604,11 +1649,20 @@ var STAT_TRIED = 0;   /* 통계 탭에서 자료를 한 번만 부르게 */
    접수일 — 이번 달 문의가 얼마나 들어왔나 (마케팅 성적)
    이사일 — 그 달에 일이 얼마나 잡혔나 (일정·인력)
    ERP 는 이사일 기준이므로, 이사일로 맞춰야 숫자를 견줄 수 있다. */
-var BASIS = 'move';   /* ★ 기본은 이사일.
+var BASIS = 'move';   /* ★v66 기본은 다시 이사일 (대표 확정 2026-09-28 오후).
 
-     접수일로 세면 「이번 달 문의가 얼마나 들어왔나」가 되고,
-     이사일로 세면 「그 달에 일이 얼마나 잡혔나」가 된다.
-     ERP 가 이사일 기준이라, 숫자를 견주려면 이사일이라야 한다.
+     v64 에서 접수일로 바꿨다가 되돌린다.
+     「12월 접수한 것이 안 보인다」의 원인을 잘못 짚었다.
+     안 보인 것이 아니라 12월 화면에 가 있었다.
+     기준을 통째로 바꿀 일이 아니라, 오늘 들어온 문의가
+     어느 달로 갔는지를 보여주는 것이 답이다. (다음 판에서)
+
+     대표 말씀 — 「9월에 몇 건 접수됐는지는 큰 의미가 없다.
+     해당월에 이사 건이 몇 건 문의됐는지를 알고 싶다.
+     현장팀을 같이 운영하기 때문이다.」
+
+     이사일 — 그 달에 일이 얼마나 잡혔나 (인력·차량 배치 · ERP 와 견줄 때)
+     접수일 — 오늘 몇 건 들어왔나 (광고를 크게 할 때 쓴다. 드롭다운에 남긴다)
      in = 접수일, move = 이사일 */
 
 /* 기준에 맞는 날짜를 뽑는다 */
@@ -1750,6 +1804,12 @@ function periodGo(){
   if(b) BASIS=b.value;
   if(y) PERIOD.year=Number(y.value)||PERIOD.year;
   if(p) PERIOD.span=p.value||PERIOD.span;
+  repaintAll();
+}
+
+/* ★v67 화면을 다시 그린다 — 드롭다운 [보기] 와 이사 달 칸이 같은 길을 쓴다.
+   길이 하나라야 위(통계)와 아래(목록)가 따로 놀 수 없다. */
+function repaintAll(){
   SHOWN=PAGE;
   try{ buildSubtabs(); }catch(e){}
   try{ renderStats(); }catch(e){}
@@ -1757,6 +1817,14 @@ function periodGo(){
   try{ renderReferStats(); }catch(e){}
   try{ renderRvStat(); }catch(e){}
   try{ renderStatTab(); }catch(e){}
+}
+
+/* ★v67 이사 달 칸을 누르면 그 달로 옮긴다.
+   드롭다운도 함께 다시 그려지므로 위아래가 늘 같은 달을 본다. */
+function monGo(y,m){
+  PERIOD.year=Number(y); PERIOD.span='m'+Number(m);
+  FILTER='all'; FILTER2='all';
+  repaintAll();
 }
 
 function ymd2(d){ return (d.getMonth()+1)+'/'+d.getDate(); }
@@ -1865,8 +1933,8 @@ function renderGate(st,pl,ph){
   h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">';
   h+=gBox('완료',sent.length,'#E6F4EC','#12805C');
   h+=gBox('예정',wait.length,'#EAF2FF','#1D6FD0');
-  h+=gBox('번호 확인',fix.length,'#FFF6E0','#8A6300','gateFixList()');
-  h+=gBox('문자 불가',only.length,'#FDEDEC','#C93B39');
+  h+=gBox('번호확인',fix.length,'#FFF6E0','#8A6300','gateFixList()');
+  h+=gBox('문자불가',only.length,'#FDEDEC','#C93B39');
   h+='</div></div>';
 
   /* ★ 오늘 보낼 것 — 확인하고 누르면 그때 나간다 */
@@ -1883,7 +1951,7 @@ function renderGate(st,pl,ph){
       +'style="margin-left:auto;padding:6px 14px;border:none;border-radius:8px;'
       +'background:'+(자동?'#12805C':'#1D6FD0')+';color:#fff;font-size:14.5px;font-weight:800;'
       +'font-family:inherit">지금 보내기</button></div>';
-    h+='<div style="margin-top:6px;font-size:13px;color:var(--muted)">'
+    h+='<div style="margin-top:6px;font-size:13.5px;color:var(--muted)">'
       +'누르기 전에 아래 명단을 확인하세요. 누르면 되돌릴 수 없습니다.</div></div>';
   }
 
@@ -2016,14 +2084,14 @@ function gateConfBox(){
         h+='<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid #EEF1F6">'
           +'<div style="flex:1;min-width:0">'
           +'<div style="font-size:14.5px;font-weight:'+(r.on?'800':'400')+';color:'+(r.on?'var(--navy)':'#999')+'">'+esc(r.name)+'</div>'
-          +'<div style="font-size:12.5px;color:var(--muted)">'+esc(r.memo||(r.cond||''))+'</div></div>'
+          +'<div style="font-size:13.5px;color:var(--muted)">'+esc(r.memo||(r.cond||''))+'</div></div>'
           +'<button onclick="gateRule(\''+esc(r.name)+'\','+(r.on?'false':'true')+')" '
           +'style="flex:none;padding:5px 12px;border:1px solid '+(r.on?'#A8DCC4':'#DDE3EC')+';'
           +'background:'+(r.on?'#E6F4EC':'#fff')+';border-radius:999px;font-size:13.5px;font-weight:800;'
           +'font-family:inherit;color:'+(r.on?'#12805C':'#999')+'">'+(r.on?'켜짐':'꺼짐')+'</button></div>';
       });
     });
-    if(c.케어시작) h+='<div style="margin-top:10px;font-size:13px;color:var(--muted)">케어는 '+esc(c.케어시작)+' 부터 나갑니다</div>';
+    if(c.케어시작) h+='<div style="margin-top:10px;font-size:13.5px;color:var(--muted)">케어는 '+esc(c.케어시작)+' 부터 나갑니다</div>';
   }
   h+='</div>';
   return h;
@@ -2095,7 +2163,7 @@ function gateAuto(on){
 function gBox(label,n,bg,col,click){
   return '<div'+(click?' onclick="'+click+'" style="cursor:pointer;':' style="')
     +'background:'+bg+';border-radius:10px;padding:11px 10px">'
-    +'<div style="font-size:12.5px;color:'+col+';font-weight:700">'+label+'</div>'
+    +'<div style="font-size:13.5px;color:'+col+';font-weight:700;white-space:nowrap;letter-spacing:-.4px">'+label+'</div>'
     +'<div style="font-size:24px;font-weight:800;color:'+col+';letter-spacing:-.5px">'+n+'</div></div>';
 }
 
@@ -2168,7 +2236,7 @@ function gateCal(use,today){
   for(var mi=1; mi<=12; mi++) h+='<option value="'+mi+'"'+(mi===mo+1?' selected':'')+'>'+mi+'월</option>';
   h+='</select>';
   if(mp) h+='<b style="font-size:15.5px;color:'+(mr>=100?'#12805C':'#8A6300')+'">'+ms+'/'+mp+' ('+mr+'%)</b>';
-  h+='<span style="margin-left:auto;display:flex;gap:9px;font-size:12.5px;color:var(--muted);font-weight:700">'
+  h+='<span style="margin-left:auto;display:flex;gap:9px;font-size:13.5px;color:var(--muted);font-weight:700">'
     +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#12805C;margin-right:4px"></span>완료</span>'
     +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D8A21E;margin-right:4px"></span>미완료</span>'
     +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#3B6FD4;margin-right:4px"></span>예정</span></span>';
@@ -2176,7 +2244,7 @@ function gateCal(use,today){
 
   h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">';
   ['일','월','화','수','목','금','토'].forEach(function(w,i){
-    h+='<div style="text-align:center;font-size:12.5px;font-weight:700;padding:3px 0;color:'
+    h+='<div style="text-align:center;font-size:13.5px;font-weight:700;padding:3px 0;color:'
       +(i===0?'#E24B4A':(i===6?'#3B6FD4':'var(--muted)'))+'">'+w+'</div>';
   });
   for(var k=0;k<start;k++) h+='<div></div>';
@@ -2193,19 +2261,19 @@ function gateCal(use,today){
       if(rate>=100){ bg='#E6F4EC'; bd='#A8DCC4'; fc='#12805C'; }
       else { bg='#FFF6E0'; bd='#F0D48A'; fc='#8A6300'; }
       txt='<div style="font-size:14px;font-weight:800;color:'+fc+';line-height:1.15">'+ok+'/'+n+'</div>'
-         +'<div style="font-size:10.5px;color:'+fc+';font-weight:700">'+rate+'%</div>';
+         +'<div style="font-size:13.5px;color:'+fc+';font-weight:700">'+rate+'%</div>';
     } else if(n){
       bg='#F4F6F9'; bd='#E4E9F0'; fc='var(--navy)';
       txt='<div style="font-size:15px;font-weight:800;color:#3B6FD4;line-height:1.15">'+n+'</div>';
     }
-    if(isToday){ bd='#7FB0F0'; if(!n){ bg='#EAF2FF'; fc='#1D6FD0'; txt='<div style="font-size:10.5px;color:#1D6FD0;font-weight:800">오늘</div>'; } }
+    if(isToday){ bd='#7FB0F0'; if(!n){ bg='#EAF2FF'; fc='#1D6FD0'; txt='<div style="font-size:13.5px;color:#1D6FD0;font-weight:800">오늘</div>'; } }
 
     h+='<div'+(n?' onclick="gateDay(\''+key+'\')"':'')
-      +' style="text-align:center;padding:5px 2px;border-radius:8px;min-height:42px;'
+      +' style="text-align:center;padding:5px 2px;border-radius:8px;min-height:50px;'
       +'cursor:'+(n?'pointer':'default')+';background:'+bg+';border:'
       +(isToday?'1.5px':'1px')+' solid '+bd+'">'
-      +'<div style="font-size:13px;font-weight:'+(n||isToday?'800':'400')+';color:'+fc+'">'+d+'</div>'
-      +(txt||'<div style="height:15px"></div>')+'</div>';
+      +'<div style="font-size:13.5px;font-weight:'+(n||isToday?'800':'400')+';color:'+fc+'">'+d+'</div>'
+      +(txt||'<div style="height:17px"></div>')+'</div>';
   }
   h+='</div></div>';
   return h;
@@ -2243,7 +2311,7 @@ function gateDay(key){
     +'<b style="font-size:16.5px;color:var(--navy)">'+dmd(key)+'</b>'
     +(past?'<span style="font-size:14px;font-weight:800;color:'+(rate>=100?'#12805C':'#8A6300')+'">'+ok+'/'+셈+' ('+rate+'%)</span>'
           :'<span style="font-size:14px;color:var(--muted);font-weight:800">예정 '+대기+'명</span>')
-    +(뺀것?'<span style="font-size:13px;color:#999;font-weight:700">뺀 것 '+뺀것+'</span>':'')+'</div>';
+    +(뺀것?'<span style="font-size:13.5px;color:#999;font-weight:700">뺀 것 '+뺀것+'</span>':'')+'</div>';
   arr.forEach(function(r){ h+=gateLine(r,false,true); });
   h+='</div>';
   box.innerHTML=h;
@@ -2296,11 +2364,11 @@ function gateLine(r,showDate,canSkip){
     +'<b>'+esc(r.rule)+'</b>'
     +'<a href="tel:'+esc(r.phone)+'" style="color:var(--navy);font-weight:700;text-decoration:none">'+esc(r.phone)+'</a>';
   if(r.state==='보냄')
-    h+='<span style="font-size:12px;background:#E6F4EC;color:#12805C;padding:1px 8px;border-radius:6px;font-weight:800">완료 '+dmd(r.sent||r.date)+'</span>';
+    h+='<span style="font-size:13.5px;background:#E6F4EC;color:#12805C;padding:1px 8px;border-radius:6px;font-weight:800">완료 '+dmd(r.sent||r.date)+'</span>';
   else if(r.state==='번호확인')
-    h+='<span style="font-size:12px;background:#FFF6E0;color:#8A6300;padding:1px 8px;border-radius:6px;font-weight:800">번호 확인</span>';
+    h+='<span style="font-size:13.5px;background:#FFF6E0;color:#8A6300;padding:1px 8px;border-radius:6px;font-weight:800">번호 확인</span>';
   else if(r.why)
-    h+='<span style="font-size:12.5px;color:#E24B4A;font-weight:800">'+esc(r.why)+'</span>';
+    h+='<span style="font-size:13.5px;color:#E24B4A;font-weight:800">'+esc(r.why)+'</span>';
   h+='</div>';
   var l2=[r.move,(r.from||'')+(r.to?' → '+r.to:'')].filter(Boolean).join('  ');
   if(l2.trim()) h+='<div style="font-size:14px;color:var(--muted);padding-left:15px">'+esc(l2)+'</div>';
@@ -2314,14 +2382,14 @@ function gateLine(r,showDate,canSkip){
     h+='<div style="padding:4px 0 2px 15px">'
       +'<button onclick="gateSkip(\''+esc(r.code)+'\',\''+esc(r.rule)+'\','+(뺌?'true':'false')+')" '
       +'style="padding:4px 11px;border:1px solid '+(뺌?'#DDE3EC':'#F0D48A')+';'
-      +'background:'+(뺌?'#F4F6F9':'#fff')+';border-radius:999px;font-size:13px;font-weight:800;'
+      +'background:'+(뺌?'#F4F6F9':'#fff')+';border-radius:999px;font-size:13.5px;font-weight:800;'
       +'font-family:inherit;color:'+(뺌?'#999':'#8A6300')+'">'
       +(뺌?'↩ 다시 보내기':'이 건은 빼기')+'</button>'
-      +(뺌?'<span style="font-size:12.5px;color:#999;margin-left:7px">안 나갑니다</span>':'')
+      +(뺌?'<span style="font-size:13.5px;color:#999;margin-left:7px">안 나갑니다</span>':'')
       +'</div>';
   }
   if(r.state==='번호확인'&&r.why)
-    h+='<div style="font-size:12.5px;color:#8A6300;font-weight:700;padding-left:15px">'+esc(r.why)+' · '+(r.fail||2)+'회 실패</div>';
+    h+='<div style="font-size:13.5px;color:#8A6300;font-weight:700;padding-left:15px">'+esc(r.why)+' · '+(r.fail||2)+'회 실패</div>';
   h+='</div>';
   return h;
 }
@@ -2449,33 +2517,134 @@ function statBody(){
 }
 
 /* 통계 — 채널별은 대분류로 묶음 */
+/* ═══════════════════════════════════════════════════════
+   ★v67 견적 탭 머리 — 「이사 달」이 주인공 (대표 확정 2026-09-28)
+
+   대표 말씀 — 「9월에 몇 건 접수됐는지는 큰 의미가 없다.
+   해당월에 이사 건이 몇 건 문의됐는지를 알고 싶다.
+   현장팀을 같이 운영하기 때문이다.」
+
+   그래서 머리는 넉 칸이다. 지난달 · 이번달 · 다음달 · 다다음달.
+   칸을 누르면 그 달로 옮겨 가고, 아래 목록도 함께 따라간다.
+
+   ★ 서버를 더 부르지 않는다. 이미 받아둔 QUOTE 만 가지고 그린다.
+     ERP 와 견주는 일은 통계 탭이 맡는다. 견적은 하루에 여러 번 여는
+     화면이라 한 번 더 부르면 그만큼 통째로 느려진다. */
+
+var CHCOLOR=['#14957A','#6B4FBB','#2C6FD1','#C98A16','#E2603A','#1D9E75'];
+
 function renderStats(){
   var now=new Date();
   var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  /* 실적은 달력 단위로 센다 — 「최근 30일」로 세면 지난달이 섞여 정산이 안 된다 */
-  var cur=periodNow();
-  var prv=periodPrev();
-  var cToday=0,cCur=0,cPrv=0,chMonth={};
-  uniqQuote().forEach(function(r){
-    var d=basisD(r);
-    if(!d) return;
-    if(BASIS==='in' && d>=today) cToday++;
-    if(d>=prv.from && d<prv.to) cPrv++;
-    if(d>=cur.from && d<cur.to){ cCur++; var w=r._main||'기타'; chMonth[w]=(chMonth[w]||0)+1; }
+  var cur=periodNow(), prv=periodPrev();
+  var UQ=uniqQuote();
+  var isMonth=(String(PERIOD.span).charAt(0)==='m');
+
+  var h=periodBar()+periodTitle(cur);
+
+  /* ── ① 오늘 들어온 문의 — 접수일을 보는 곳은 여기 한 줄뿐이다.
+        오늘 받은 건이 먼 달로 가더라도 이 줄에서는 보인다. ── */
+  var todayBy={}, todayN=0;
+  UQ.forEach(function(r){
+    var ins=parseD(findStamp(r));
+    if(!ins || ins<today) return;
+    todayN++;
+    var mv=parseD(r['이사예정일']);
+    var k = mv ? (mv.getFullYear()+'-'+('0'+(mv.getMonth()+1)).slice(-2)) : 'zz';
+    todayBy[k]=(todayBy[k]||0)+1;
   });
-  var chs=Object.keys(chMonth).sort(function(a,b){return chMonth[b]-chMonth[a];});
-  var h=periodBar()+periodTitle(cur)+'<div class="row1">';
-  h+= (BASIS==='in')
-      ? '<div class="pill"><div class="n">'+cToday+'</div><div class="l">오늘 접수</div></div>'
-      : '<div class="pill"><div class="n">'+QUOTE.length+'</div><div class="l">모두</div></div>';
-  h+='<div class="pill"><div class="n">'+cCur+dltHtml(cCur,cPrv)+'</div><div class="l">'+esc(cur.name)+'</div></div>';
-  h+='<div class="pill"><div class="n">'+cPrv+'</div><div class="l">'+esc(prv.name)+'</div></div>';
-  h+='</div>';
-  if(chs.length){
-    h+='<div class="ch-title">채널별 · '+esc(cur.name)+'</div><div class="chs">';
-    chs.forEach(function(w){ h+='<div class="ch">'+esc(w)+'<b>'+chMonth[w]+'</b></div>'; });
-    h+='</div>';
+  h+='<div class="tdy"><span class="h">오늘 들어온 문의</span><span class="n">'+todayN+'</span>';
+  if(todayN){
+    Object.keys(todayBy).sort().forEach(function(k){
+      if(k==='zz'){ h+='<span class="g none">'+esc(BASIS==='move'?'이사일':'접수일')+' 없음 '+todayBy[k]+'</span>'; return; }
+      var y=Number(k.split('-')[0]), m=Number(k.split('-')[1]);
+      var nm=(y===now.getFullYear()? m+'월' : y+'년 '+m+'월');
+      h+='<button type="button" class="g" onclick="monGo('+y+','+m+')">'+nm+' '+todayBy[k]+'</button>';
+    });
+  }else{
+    h+='<span class="g none">아직 없습니다</span>';
   }
+  h+='</div>';
+
+  /* ── ② 이사 달 넉 칸 — 지난달 · 이번달 · 다음달 · 다다음달 ──
+        고른 달을 가운데(두 번째)에 두므로 드롭다운을 옮기면 넉 칸도 따라간다. */
+  if(isMonth){
+    var baseM=Number(String(PERIOD.span).slice(1))-1;
+    var cells=[], inBins=0;
+    for(var k2=-1;k2<=2;k2++){
+      var f=new Date(PERIOD.year, baseM+k2, 1), t=new Date(PERIOD.year, baseM+k2+1, 1);
+      cells.push({y:f.getFullYear(), m:f.getMonth()+1, from:f, to:t, n:0, on:(k2===0)});
+    }
+    var noDate=0, outside=0, chCur={};
+    UQ.forEach(function(r){
+      var d=basisD(r);
+      if(!d){ noDate++; return; }
+      var hit=false;
+      for(var a=0;a<cells.length;a++){
+        if(d>=cells[a].from && d<cells[a].to){ cells[a].n++; hit=true; break; }
+      }
+      if(!hit) outside++;
+      if(d>=cur.from && d<cur.to){ var w=r._main||'기타'; chCur[w]=(chCur[w]||0)+1; }
+    });
+    cells.forEach(function(c){ inBins+=c.n; });
+
+    h+='<div class="m4lbl">'+esc(BASIS_NAME[BASIS])+' 달별 접수 <span>칸을 누르면 아래 목록도 바뀝니다</span></div>';
+    h+='<div class="m4">';
+    cells.forEach(function(c){
+      h+='<button type="button" class="mc'+(c.on?' on':'')+'" onclick="monGo('+c.y+','+c.m+')">'+
+         '<span class="mm">'+(c.y!==now.getFullYear()? String(c.y).slice(2)+'.' : '')+c.m+'월</span>'+
+         '<span class="mn">'+c.n+'</span></button>';
+    });
+    h+='</div>';
+
+    /* 넉 칸 밖으로 나간 건 — 사라지지 않게 적는다 */
+    var tail=[];
+    if(outside) tail.push('넉 달 밖 <b>'+outside+'건</b>');
+    if(noDate)  tail.push('<b class="w">'+esc(BASIS==='move'?'이사일':'접수일')+' 없음 '+noDate+'건</b>');
+    if(tail.length){
+      h+='<div class="m4tail">'+tail.join(' · ')+' — 연도·기간을 바꿔 보십시오</div>';
+    }
+
+    /* ── ③ 어디서 왔나 — 막대 하나. 갈래가 늘어도 한 줄이다 ── */
+    var chs=Object.keys(chCur).sort(function(a,b){return chCur[b]-chCur[a];});
+    var tot=0; chs.forEach(function(w){ tot+=chCur[w]; });
+    if(tot){
+      var top=chs.slice(0,3), rest=chs.slice(3);
+      var restN=0; rest.forEach(function(w){ restN+=chCur[w]; });
+      h+='<div class="ch-title">어디서 왔나 · '+esc(cur.name)+' · '+tot+'건</div>';
+      h+='<div class="stk">';
+      top.forEach(function(w,i){ h+='<i style="width:'+(chCur[w]/tot*100)+'%;background:'+CHCOLOR[i]+'"></i>'; });
+      if(restN) h+='<i style="width:'+(restN/tot*100)+'%;background:#8894A8"></i>';
+      h+='</div><div class="stlg">';
+      top.forEach(function(w,i){
+        h+='<span><em style="background:'+CHCOLOR[i]+'"></em>'+esc(w)+
+           ' <b>'+chCur[w]+' · '+Math.round(chCur[w]/tot*100)+'%</b></span>';
+      });
+      if(restN) h+='<span><em style="background:#8894A8"></em>그 밖 '+rest.length+
+                   ' <b>'+restN+' · '+Math.round(restN/tot*100)+'%</b></span>';
+      h+='</div>';
+    }
+  }else{
+    /* 월이 아닌 기간(연간·반기·분기)은 넉 칸이 뜻이 없다. 합계 두 칸으로 */
+    var cCur=0,cPrv=0,chC={};
+    UQ.forEach(function(r){
+      var d=basisD(r); if(!d) return;
+      if(d>=prv.from && d<prv.to) cPrv++;
+      if(d>=cur.from && d<cur.to){ cCur++; var w=r._main||'기타'; chC[w]=(chC[w]||0)+1; }
+    });
+    h+='<div class="row1">'+
+       '<div class="pill"><div class="n">'+cCur+'</div><div class="l">'+esc(cur.name)+'</div></div>'+
+       '<div class="pill"><div class="n">'+cPrv+'</div><div class="l">'+esc(prv.name)+'</div></div></div>';
+    var ks=Object.keys(chC).sort(function(a,b){return chC[b]-chC[a];});
+    if(ks.length){
+      h+='<div class="ch-title">어디서 왔나 · '+esc(cur.name)+'</div><div class="chs">';
+      ks.forEach(function(w){
+        h+='<div class="ch">'+esc(w)+'<b>'+chC[w]+'</b><i>'+Math.round(chC[w]/cCur*100)+'%</i></div>';
+      });
+      h+='</div>';
+    }
+  }
+
   document.getElementById('stats').innerHTML=h;
 }
 
