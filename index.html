@@ -66,14 +66,6 @@
   .stats .ch{background:var(--acBg,var(--navyBg));color:var(--navy);border-radius:999px;padding:5px 11px;font-size:14px;font-weight:700}
   .stats .ch b{color:var(--ac,var(--teal));margin-left:3px}
   /* ═══ ★v67 견적 탭 머리 — 이사 달 넉 칸 ═══ */
-  /* 오늘 들어온 문의 — 접수일을 보는 곳은 여기 한 줄뿐이다 */
-  .stats .tdy{display:flex;align-items:center;gap:7px;flex-wrap:wrap;
-    background:var(--blueBg);border-radius:10px;padding:10px 12px;margin-bottom:11px}
-  .stats .tdy .h{font-size:14.5px;font-weight:800;color:#1D5FB0}
-  .stats .tdy .n{font-size:20px;font-weight:900;color:#1D5FB0}
-  .stats .tdy .g{border:none;font-family:inherit;font-size:13.5px;font-weight:800;
-    background:#fff;color:#1D5FB0;border-radius:999px;padding:5px 11px;cursor:pointer}
-  .stats .tdy .g.none{background:transparent;color:#6E8BAE;font-weight:700;padding:5px 2px}
   /* 넉 칸 */
   .stats .m4lbl{font-size:14px;font-weight:800;color:var(--muted);margin-bottom:7px}
   .stats .m4lbl span{font-weight:700;font-size:13.5px;opacity:.8;margin-left:5px}
@@ -97,6 +89,22 @@
   .stats .stlg em{font-style:normal;width:10px;height:10px;border-radius:3px;display:inline-block}
   .stats .stlg b{color:var(--navy)}
   .stats .ch i{font-style:normal;color:var(--muted);font-size:13.5px;margin-left:4px}
+  /* ★v68 아래 목록 거르개 — 기본은 「전체 · 접수 최신순」 */
+  .lmode{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:9px}
+  .lm{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;
+    padding:8px 15px;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit}
+  .lm.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .lmn{font-size:13.5px;font-weight:700;color:var(--muted)}
+  /* 아직 안 본 건 — 누르지 않아도 눈에 띈다 */
+  .newb{background:#1D6FD0;color:#fff;border-radius:999px;padding:3px 11px;
+    font-size:13.5px;font-weight:900;letter-spacing:.3px}
+  /* [new N건 · 확인] — 누르면 딱지가 한꺼번에 사라진다 */
+  .seen{border:none;font-family:inherit;cursor:pointer;background:#1D6FD0;color:#fff;
+    border-radius:999px;padding:8px 15px;font-size:14.5px;font-weight:800;
+    display:inline-flex;align-items:center;gap:5px}
+  .seen:active{opacity:.8}
+  /* 다른 탭에 있어도 새 접수가 있으면 뱃지 색이 바뀐다 */
+  .tab .b.hasnew,.tab.on .b.hasnew{background:#E2603A;color:#fff}
   .searchbar{position:relative;margin-bottom:10px}
   /* 검색창 — 회색 바탕. 흰 카드(보는 것)와 확실히 갈린다 */
   .searchbar input{width:100%;box-sizing:border-box;font-size:17px;padding:13px 40px 13px 14px;
@@ -511,7 +519,7 @@
 <div id="app" class="hide">
   <div class="top">
     <h1><span class="nm">해피데이 · 사무실</span><button class="lk" onclick="forgetKey()">잠그기</button></h1>
-    <div class="sub"><span>v67 · 0928-1505</span><span class="r" id="clock"></span></div>
+    <div class="sub"><span>v69 · 0928-1910</span><span class="r" id="clock"></span></div>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -530,6 +538,7 @@
         <input id="q" type="search" placeholder="전화 뒷자리 · 이사일 · 지역 · 소개자로 찾기" oninput="onSearch()">
         <button id="qClear" class="qclear hide" onclick="clearSearch()">✕</button>
       </div>
+      <div class="lmode" id="listMode"></div>
       <div class="subtabs" id="subtabs"></div>
       <div class="subtabs2 hide" id="subtabs2"></div>
       <div class="bar">
@@ -598,6 +607,63 @@ var FILTER2 = 'all';   /* 그 안의 상세 (소개자·부동산 이름) */
 var SEARCH = '';
 var PAGE = 50;
 var SHOWN = 50;
+/* ★v68 아래 목록이 무엇을 보이는가.
+   all    — 접수된 것 전부, 최신순 (기본. 오피스를 열면 이 상태)
+   period — 위에서 고른 이사 달만
+   위 넉 칸이나 [보기]를 누르면 period 로 바뀌고, [전체]를 누르면 돌아온다. */
+var LISTMODE = 'all';
+
+/* 접수시각을 숫자로 — 정렬용. 없으면 맨 뒤로.
+   ★ parseD 는 날짜만 준다. 같은 날 넉 건이 같은 값이 되어 차례가 안 선다.
+     그래서 「오전/오후 10:20」까지 읽어 분 단위로 세운다. */
+function stampT(r){
+  var v=String(findStamp(r)||'').trim();
+  var d=parseD(v); if(!d) return -1;
+  var t=d.getTime();
+  var m=v.match(/(오전|오후)?\s*(\d{1,2}):(\d{2})/);
+  if(m){
+    var H=Number(m[2]), M=Number(m[3]);
+    if(m[1]==='오후' && H<12) H+=12;
+    if(m[1]==='오전' && H===12) H=0;
+    t += H*3600000 + M*60000;
+  }
+  return t;
+}
+/* ★v69 아직 안 본 건인가 — 「new」 딱지.
+   대표 지적 2026-09-28 — 「오늘」은 이미 다 본 뒤에도 하루 종일 붙어 있고,
+   어젯밤 늦게 들어와 오늘 아침 처음 보는 건에는 안 붙는다.
+   그래서 「오늘」이 아니라 「아직 안 본 것」으로 바꾼다.
+
+   마지막으로 [확인]을 누른 시각만 기억한다. 그 뒤로 들어온 건이 new 다.
+   건마다 눌러 지우게 하지 않는다 — 손이 더 간다.
+
+   ★ 이 값은 그 기기의 브라우저에만 남는다. 폰에서 확인해도 PC 에서는
+     다시 new 로 보인다. 틀리는 방향이 안전하다 — 이미 본 것을 또 보는 것이지,
+     못 보고 지나치는 것이 아니다. 시트에 넣으면 기기가 같아지지만
+     칸을 늘리고 앱스크립트를 고쳐야 해서 한 세트가 커진다. (대표 결정 사항) */
+var LASTSEEN = (function(){
+  var v=0;
+  try{ v=Number(localStorage.getItem('office_seen')||0)||0; }catch(e){}
+  if(!v){ var n=new Date(); v=new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime(); }
+  return v;
+})();
+
+function isNew(r){ return stampT(r) > LASTSEEN; }
+function newCount(){ return QUOTE.filter(isNew).length; }
+
+/* [확인] — 지금 목록에 있는 것을 다 본 것으로 한다.
+
+   ★ Date.now() 를 쓰지 않는다. 시트의 접수시각은 한국 시각인데
+     보는 기기의 시계가 다른 곳에 맞춰져 있으면 어긋나 딱지가 안 지워진다.
+     「지금 화면에 있는 것 중 가장 늦은 접수시각」을 적어 두면
+     시계가 무엇이든 정확히 지워진다. */
+function seenAll(){
+  var mx=LASTSEEN;
+  QUOTE.forEach(function(r){ var t=stampT(r); if(t>mx) mx=t; });
+  LASTSEEN=mx;
+  try{ localStorage.setItem('office_seen', String(LASTSEEN)); }catch(e){}
+  repaintAll();
+}
 
 /* ═══════════ ★v2 유입경로 정리 ═══════════
    시트 값 : 지인소개(김민균(김관홍님 친구))
@@ -1616,11 +1682,19 @@ function loadQuote(){
     rememberKey(KEY);
     QUOTE=res.rows||[];
     QUOTE.forEach(function(r){ var o=gatherOf(r); r._main=o.main; r._detail=o.detail; });
+    /* ★v68 접수 최신순으로 세운다.
+       텔레그램 알람을 보고 오피스를 열면 방금 들어온 건이 맨 위에 있어야 한다.
+       시트가 주는 차례에 기대지 않는다. 접수시각이 없는 건은 맨 뒤로. */
+    QUOTE.sort(function(a,b){
+      var da=stampT(a), db=stampT(b);
+      return db-da;
+    });
     buildDup();
+    renderListMode();
     buildSubtabs();
     renderStats();
     renderQuote();
-    document.getElementById('cnt-quote').textContent=QUOTE.filter(inPeriod).length;
+    /* 탭 뱃지는 지금 목록에 보이는 건수 — renderQuote 가 채운다 */
     /* 자료가 왔으면 통계 탭도 다시 그린다 (숨겨져 있어도 미리 채워둔다) */
     try{ renderStatTab(); }catch(e){}
   }).catch(function(err){
@@ -1804,6 +1878,7 @@ function periodGo(){
   if(b) BASIS=b.value;
   if(y) PERIOD.year=Number(y.value)||PERIOD.year;
   if(p) PERIOD.span=p.value||PERIOD.span;
+  LISTMODE='period';   /* 일부러 기간을 고르셨으니 목록도 그 기간만 */
   repaintAll();
 }
 
@@ -1811,6 +1886,7 @@ function periodGo(){
    길이 하나라야 위(통계)와 아래(목록)가 따로 놀 수 없다. */
 function repaintAll(){
   SHOWN=PAGE;
+  try{ renderListMode(); }catch(e){}
   try{ buildSubtabs(); }catch(e){}
   try{ renderStats(); }catch(e){}
   try{ renderQuote(); }catch(e){}
@@ -1823,9 +1899,13 @@ function repaintAll(){
    드롭다운도 함께 다시 그려지므로 위아래가 늘 같은 달을 본다. */
 function monGo(y,m){
   PERIOD.year=Number(y); PERIOD.span='m'+Number(m);
-  FILTER='all'; FILTER2='all';
+  FILTER='all'; FILTER2='all'; LISTMODE='period';
   repaintAll();
 }
+
+/* 목록만 전체로 되돌린다 — 위 넉 칸은 고른 달 그대로 */
+function listAll(){ LISTMODE='all'; FILTER='all'; FILTER2='all'; repaintAll(); }
+function listPeriod(){ LISTMODE='period'; FILTER='all'; FILTER2='all'; repaintAll(); }
 
 function ymd2(d){ return (d.getMonth()+1)+'/'+d.getDate(); }
 
@@ -2542,29 +2622,11 @@ function renderStats(){
 
   var h=periodBar()+periodTitle(cur);
 
-  /* ── ① 오늘 들어온 문의 — 접수일을 보는 곳은 여기 한 줄뿐이다.
-        오늘 받은 건이 먼 달로 가더라도 이 줄에서는 보인다. ── */
-  var todayBy={}, todayN=0;
-  UQ.forEach(function(r){
-    var ins=parseD(findStamp(r));
-    if(!ins || ins<today) return;
-    todayN++;
-    var mv=parseD(r['이사예정일']);
-    var k = mv ? (mv.getFullYear()+'-'+('0'+(mv.getMonth()+1)).slice(-2)) : 'zz';
-    todayBy[k]=(todayBy[k]||0)+1;
-  });
-  h+='<div class="tdy"><span class="h">오늘 들어온 문의</span><span class="n">'+todayN+'</span>';
-  if(todayN){
-    Object.keys(todayBy).sort().forEach(function(k){
-      if(k==='zz'){ h+='<span class="g none">'+esc(BASIS==='move'?'이사일':'접수일')+' 없음 '+todayBy[k]+'</span>'; return; }
-      var y=Number(k.split('-')[0]), m=Number(k.split('-')[1]);
-      var nm=(y===now.getFullYear()? m+'월' : y+'년 '+m+'월');
-      h+='<button type="button" class="g" onclick="monGo('+y+','+m+')">'+nm+' '+todayBy[k]+'</button>';
-    });
-  }else{
-    h+='<span class="g none">아직 없습니다</span>';
-  }
-  h+='</div>';
+  /* ★v68 「오늘 들어온 문의」 줄을 없앴다.
+     누르지 않아도 보여야 한다 — 목록 자체가 접수 최신순이고,
+     오늘 들어온 건에는 「오늘」 딱지가 붙는다. 대표 지적 2026-09-28.
+        「텔레그램 알람이 떠서 오피스 견적을 봤더니 없는 거야.
+         이거 오류다 라고 생각했는데… 이사일 기준이라 그렇구나를 나중에 알았지」 */
 
   /* ── ② 이사 달 넉 칸 — 지난달 · 이번달 · 다음달 · 다다음달 ──
         고른 달을 가운데(두 번째)에 두므로 드롭다운을 옮기면 넉 칸도 따라간다. */
@@ -2602,7 +2664,8 @@ function renderStats(){
     if(outside) tail.push('넉 달 밖 <b>'+outside+'건</b>');
     if(noDate)  tail.push('<b class="w">'+esc(BASIS==='move'?'이사일':'접수일')+' 없음 '+noDate+'건</b>');
     if(tail.length){
-      h+='<div class="m4tail">'+tail.join(' · ')+' — 연도·기간을 바꿔 보십시오</div>';
+      h+='<div class="m4tail">'+tail.join(' · ')+
+         ' — 아래 [접수 전체] 목록에는 나옵니다</div>';
     }
 
     /* ── ③ 어디서 왔나 — 막대 하나. 갈래가 늘어도 한 줄이다 ── */
@@ -2671,7 +2734,7 @@ function parseD(v){
 /* ★v2 유입경로 칩 — 1단 대분류, 2단 상세 */
 function buildSubtabs(){
   /* ★ 유입 칩도 고른 기간 안에서 센다 — 위아래 숫자가 맞아야 한다 */
-  var base=QUOTE.filter(inPeriod);
+  var base=(LISTMODE==='all') ? QUOTE.slice() : QUOTE.filter(inPeriod);
   var ways={};
   base.forEach(function(r){ var w=r._main||'기타'; ways[w]=(ways[w]||0)+1; });
   var order=Object.keys(ways).sort(function(a,b){return ways[b]-ways[a];});
@@ -2687,7 +2750,7 @@ function buildSubtabs2(){
   var box=document.getElementById('subtabs2');
   if(FILTER==='all'){ box.classList.add('hide'); box.innerHTML=''; return; }
   var det={};
-  QUOTE.filter(inPeriod).forEach(function(r){
+  ((LISTMODE==='all') ? QUOTE : QUOTE.filter(inPeriod)).forEach(function(r){
     if((r._main||'기타')!==FILTER) return;
     var d=r._detail||'(미기재)';
     det[d]=(det[d]||0)+1;
@@ -2705,6 +2768,25 @@ function buildSubtabs2(){
   });
   box.innerHTML=h;
   box.classList.remove('hide');
+}
+
+/* ★v68 아래 목록 거르개 — 「전체」가 기본이다.
+   오피스를 열면 접수된 것이 최신순으로 그냥 보인다. 누를 일이 없다. */
+function renderListMode(){
+  var box=document.getElementById('listMode'); if(!box) return;
+  var p=periodNow();
+  var nAll=QUOTE.length;
+  var nPer=QUOTE.filter(inPeriod).length;
+  var nNew=newCount();
+  var h='<button type="button" class="lm'+(LISTMODE==='all'?' on':'')+'" onclick="listAll()">'+
+        '접수 전체 '+nAll+'</button>'+
+        '<button type="button" class="lm'+(LISTMODE==='period'?' on':'')+'" onclick="listPeriod()">'+
+        esc(p.name)+' '+esc(BASIS_NAME[BASIS])+' '+nPer+'</button>';
+  h+= nNew
+      ? '<button type="button" class="seen" onclick="seenAll()">new '+nNew+'건 · 확인</button>'
+      : '<span class="lmn">'+(LISTMODE==='all' ? '접수 최신순 · 새 접수 없음' : '이 달만 걸러 보는 중')+'</span>';
+  if(nNew && LISTMODE!=='all') h+='<span class="lmn">이 달만 걸러 보는 중</span>';
+  box.innerHTML=h;
 }
 
 function setFilter(f){ FILTER=f; FILTER2='all'; SHOWN=PAGE; buildSubtabs(); renderQuote(); }
@@ -2776,13 +2858,16 @@ function renderQuote(){
   var full = QUOTE.filter(function(r){
     var okWay = (FILTER==='all') || ((r._main||'기타')===FILTER);
     var okDet = (FILTER2==='all') || ((r._detail||'(미기재)')===FILTER2);
-    var okPer = SEARCH ? true : inPeriod(r);
+    var okPer = (SEARCH || LISTMODE==='all') ? true : inPeriod(r);
     return okPer && okWay && okDet && matchSearch(r);
   });
   /* ★ 무엇을 보고 있는지 적는다 — 검색 중이면 전체에서 찾은 것 */
   var pn=periodNow().name;
   document.getElementById('quoteCnt').textContent =
-    SEARCH ? ('전체에서 '+full.length+'건') : (pn+' '+full.length+'건');
+    SEARCH ? ('전체에서 '+full.length+'건')
+           : (LISTMODE==='all' ? ('접수 전체 '+full.length+'건') : (pn+' '+full.length+'건'));
+  var tb=document.getElementById('cnt-quote');
+  if(tb){ tb.textContent=full.length; tb.classList.toggle('hasnew', newCount()>0); }
 
   if(!full.length){
     document.getElementById('quoteList').innerHTML='<div class="empty"><div class="big">찾는 견적이 없습니다</div>검색어를 지우면 전체가 다시 보입니다.</div>';
@@ -2802,6 +2887,7 @@ function renderQuote(){
 
     h+='<div class="card">';
     h+='<div class="chead">';
+    if(isNew(r)) h+='<span class="newb">new</span>';
     h+='<span class="way" style="'+wayStyle(r._main)+'">'+esc(r._main||'경로미상')+'</span>';
     h+='<span class="mode'+(대면?'':' f')+'">'+esc(mode||'—')+'</span>';
     h+='<span class="tel">'+esc(g('연락처'))+'</span>';
