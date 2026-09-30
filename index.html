@@ -169,6 +169,15 @@
   .mode.f{background:var(--coralBg);color:var(--coral)}
   .tel{font-size:18px;font-weight:800}
   .when{margin-left:auto;font-size:15px;color:var(--muted)}
+  /* ★v70 사진이 다 왔나 — 앱스크립트 v84 가 시트에 적는 세 칸을 읽는다.
+     글씨 15px = .way/.mode/.when 과 같은 크기 (규칙 최소 13.5px) */
+  .shotb{border-radius:7px;padding:4px 10px;font-size:15px;font-weight:800;white-space:nowrap}
+  .shotb.ok{background:var(--tealBg);color:var(--teal)}
+  .shotb.bad{background:var(--coralBg);color:var(--coral)}
+  .shotb.wait{background:#F1F3F7;color:#5B657A}
+  .shotw{margin:0 0 11px;padding:11px 14px;border-radius:11px;white-space:normal;
+    background:var(--coralBg);border:1.5px solid #F0C4B6;color:var(--coral);
+    font-size:16px;font-weight:800;line-height:1.5}
 
   .move{font-size:17px;font-weight:800;margin:9px 0 3px;color:var(--navy)}
   .route{font-size:17px;line-height:1.65;color:#33415A}
@@ -519,7 +528,7 @@
 <div id="app" class="hide">
   <div class="top">
     <h1><span class="nm">해피데이 · 사무실</span><button class="lk" onclick="forgetKey()">잠그기</button></h1>
-    <div class="sub"><span>v69 · 0928-1910</span><span class="r" id="clock"></span></div>
+    <div class="sub"><span>v70 · 0930-2045</span><span class="r" id="clock"></span></div>
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="quote">견적 <span class="b" id="cnt-quote">0</span></button>
       <button class="tab" data-tab="refer">소개 <span class="b" id="cnt-refer">–</span></button>
@@ -1905,6 +1914,7 @@ function monGo(y,m){
 
 /* 목록만 전체로 되돌린다 — 위 넉 칸은 고른 달 그대로 */
 function listAll(){ LISTMODE='all'; FILTER='all'; FILTER2='all'; repaintAll(); }
+function listShot(){ LISTMODE='shot'; FILTER='all'; FILTER2='all'; repaintAll(); }   /* ★v70 */
 function listPeriod(){ LISTMODE='period'; FILTER='all'; FILTER2='all'; repaintAll(); }
 
 function ymd2(d){ return (d.getMonth()+1)+'/'+d.getDate(); }
@@ -2731,10 +2741,46 @@ function parseD(v){
   return null;
 }
 
+/* ══════════════════════════════════════════════════════════
+   ★v70 사진이 다 왔나 — 앱스크립트 v84 가 시트에 적는 세 칸
+     사진_고른수 : 손님이 고른 장수
+     사진_올린수 : 실제로 드라이브에 저장된 장수
+     사진확인   : 대기 / 완료 / 부족 3/5 / 해당없음
+   ★ 세 칸이 다 비어 있으면 v84 이전에 들어온 옛 건이다 → 아무것도 안 그린다.
+     없는 것을 「0장 도착」으로 적으면 멀쩡한 옛 건이 전부 붉어진다.
+   ══════════════════════════════════════════════════════════ */
+function shotOf(r){
+  if(!r) return null;
+  var st  = String(r['사진확인']||'').trim();
+  var wRaw= String(r['사진_고른수']||'').trim();
+  var uRaw= String(r['사진_올린수']||'').trim();
+  if(!st && !wRaw && !uRaw) return null;          /* 옛 건 — 칸 자체가 없다 */
+  if(st==='해당없음') return null;                 /* 대면 — 사진을 안 받는다 */
+  var want=Number(wRaw)||0, got=Number(uRaw)||0;
+  var m=st.match(/부족\s*(\d+)\s*\/\s*(\d+)/);   /* 「부족 3/5」가 가장 정확하다 */
+  if(m){ got=Number(m[1]); want=Number(m[2]); }
+  if(!want) return null;
+  var done=(st==='완료') || got>=want;
+  return { want:want, got:got, st:st, done:done, short:!done };
+}
+/* 카드에 붙이는 딱지 */
+function shotBadge(r){
+  var sh=shotOf(r); if(!sh) return '';
+  if(sh.done)          return '<span class="shotb ok">사진 '+sh.got+'/'+sh.want+'</span>';
+  if(sh.st==='대기')   return '<span class="shotb wait">사진 '+sh.got+'/'+sh.want+' 받는 중</span>';
+  return '<span class="shotb bad">사진 '+sh.got+'/'+sh.want+' ★</span>';
+}
+/* 지금 목록 범위에서 사진이 모자란 건 */
+function shotShortList(){
+  return QUOTE.filter(function(r){ var sh=shotOf(r); return sh && sh.short && sh.st!=='대기'; });
+}
+
 /* ★v2 유입경로 칩 — 1단 대분류, 2단 상세 */
 function buildSubtabs(){
   /* ★ 유입 칩도 고른 기간 안에서 센다 — 위아래 숫자가 맞아야 한다 */
-  var base=(LISTMODE==='all') ? QUOTE.slice() : QUOTE.filter(inPeriod);
+  var base=(LISTMODE==='all')  ? QUOTE.slice()
+         : (LISTMODE==='shot') ? shotShortList()                              /* ★v70 */
+         : QUOTE.filter(inPeriod);
   var ways={};
   base.forEach(function(r){ var w=r._main||'기타'; ways[w]=(ways[w]||0)+1; });
   var order=Object.keys(ways).sort(function(a,b){return ways[b]-ways[a];});
@@ -2750,7 +2796,9 @@ function buildSubtabs2(){
   var box=document.getElementById('subtabs2');
   if(FILTER==='all'){ box.classList.add('hide'); box.innerHTML=''; return; }
   var det={};
-  ((LISTMODE==='all') ? QUOTE : QUOTE.filter(inPeriod)).forEach(function(r){
+  ((LISTMODE==='all')  ? QUOTE
+  : (LISTMODE==='shot') ? shotShortList()                                     /* ★v70 */
+  : QUOTE.filter(inPeriod)).forEach(function(r){
     if((r._main||'기타')!==FILTER) return;
     var d=r._detail||'(미기재)';
     det[d]=(det[d]||0)+1;
@@ -2774,17 +2822,36 @@ function buildSubtabs2(){
    오피스를 열면 접수된 것이 최신순으로 그냥 보인다. 누를 일이 없다. */
 function renderListMode(){
   var box=document.getElementById('listMode'); if(!box) return;
+  /* ★v70 사진이 덜 온 건이 있으면 목록 맨 위에 띠를 띄운다.
+     텔레그램 알림을 놓쳐도 오피스를 열면 바로 보인다. */
+  try{
+    var wrap=box.parentNode, warn=document.getElementById('shotWarn');
+    var ns=shotShortList().length;
+    if(ns){
+      if(!warn){ warn=document.createElement('div'); warn.id='shotWarn'; warn.className='shotw';
+                 wrap.insertBefore(warn, box); }
+      warn.innerHTML='⚠️ 사진이 덜 온 건 <b>'+ns+'건</b> — 손님께 다시 청해야 합니다'
+        +' <button type="button" class="lm" style="margin-left:8px" onclick="listShot()">보기</button>';
+      warn.style.display='block';
+    } else if(warn){ warn.style.display='none'; }
+  }catch(e){}
   var p=periodNow();
   var nAll=QUOTE.length;
   var nPer=QUOTE.filter(inPeriod).length;
   var nNew=newCount();
+  var nShot=shotShortList().length;                        /* ★v70 */
   var h='<button type="button" class="lm'+(LISTMODE==='all'?' on':'')+'" onclick="listAll()">'+
         '접수 전체 '+nAll+'</button>'+
         '<button type="button" class="lm'+(LISTMODE==='period'?' on':'')+'" onclick="listPeriod()">'+
         esc(p.name)+' '+esc(BASIS_NAME[BASIS])+' '+nPer+'</button>';
+  /* ★v70 사진이 모자란 건만 — 한 건도 없으면 칩을 안 만든다 */
+  if(nShot) h+='<button type="button" class="lm'+(LISTMODE==='shot'?' on':'')+'" onclick="listShot()">'+
+                '사진 부족 '+nShot+'</button>';
   h+= nNew
       ? '<button type="button" class="seen" onclick="seenAll()">new '+nNew+'건 · 확인</button>'
-      : '<span class="lmn">'+(LISTMODE==='all' ? '접수 최신순 · 새 접수 없음' : '이 달만 걸러 보는 중')+'</span>';
+      : '<span class="lmn">'+(LISTMODE==='all'  ? '접수 최신순 · 새 접수 없음'
+                            : LISTMODE==='shot' ? '사진이 덜 온 건만 보는 중'      /* ★v70 */
+                            : '이 달만 걸러 보는 중')+'</span>';
   if(nNew && LISTMODE!=='all') h+='<span class="lmn">이 달만 걸러 보는 중</span>';
   box.innerHTML=h;
 }
@@ -2830,27 +2897,60 @@ function fmtDate(v){
   }
   return s;
 }
-function fmtStamp(v){
-  var s=String(v||'').replace(/\s+/g,' ').trim();
+/* ══════════════════════════════════════════════════════════
+   ★v70 시각은 24시간 — 지침 v13 ■9-2 ★★v12
+   ─────────────────────────────────────────────────────────
+   v69 는 거꾸로 하고 있었다.
+   견적링크는 「13:00」으로 제대로 보내는데, 오피스가 받아서
+   「오후 1시」로 되돌렸다(옛 fmtTime). 접수시각은 시트 글자를
+   그대로 뿌려 「2026. 9. 30. 오후 12:08:02」로 나왔다.
+
+   지침이 정한 대로 **고치는 곳을 이 한 함수로 모은다.**
+   화면마다 따로 만들면 반드시 한 곳이 빠진다.
+   ══════════════════════════════════════════════════════════ */
+function hhmm(v){
+  var s=String(v==null?'':v).trim();
   if(!s) return '';
-  if(/\d{4}[.\-]\s*\d{1,2}[.\-]/.test(s) && !/[A-Za-z]{3}/.test(s)) return s;
-  var d=new Date(s);
-  if(!isNaN(d.getTime())){
-    var yy=d.getFullYear(), mm=('0'+(d.getMonth()+1)).slice(-2), dd=('0'+d.getDate()).slice(-2);
-    var H=d.getHours(), M=('0'+d.getMinutes()).slice(-2);
-    var ap=H<12?'오전':'오후'; var h12=H%12; if(h12===0)h12=12;
-    return yy+'-'+mm+'-'+dd+' '+ap+' '+h12+':'+M;
-  }
-  return s;
+  /* ★ 범위는 손대지 않는다 — 「09시~11시」를 고쳐 적으면 뒤쪽을 잃는다 */
+  if(/[~–—]|부터|까지/.test(s)) return s;
+  if(/\d\s*-\s*\d{1,2}\s*[:시]/.test(s)) return s;      /* 09:00-11:00 도 범위다 */
+  var m=s.match(/(오전|오후|AM|PM)?\s*(\d{1,2})\s*(?::|시)\s*(\d{1,2})?/i);
+  if(!m) return s;
+  var H=Number(m[2]), M=(m[3]==null||m[3]==='')?0:Number(m[3]);
+  var ap=String(m[1]||'').toUpperCase();
+  if((ap==='오후'||ap==='PM') && H<12) H+=12;
+  if((ap==='오전'||ap==='AM') && H===12) H=0;
+  if(H>23||M>59) return s;                                /* 못 읽으면 원문 그대로 */
+  return ('0'+H).slice(-2)+':'+('0'+M).slice(-2);
 }
-function fmtTime(v){
-  if(!v) return '';
-  var s=String(v).trim();
-  if(/^[가-힣0-9:\s시분오전후]+$/.test(s) && s.length<12) return s;
-  var m=s.match(/(\d{1,2}):(\d{2})/);
-  if(m){ var H=+m[1]; var ap=H<12?'오전':'오후'; var h12=H%12; if(h12===0)h12=12; return ap+' '+h12+'시'+(m[2]!=='00'?' '+m[2]+'분':''); }
-  return s;
+
+/* ★v70 방문 일시 한 줄 — 세 곳이 같은 길을 쓴다
+   ★ 시각이 있으면 시간대(「오후」)를 함께 적지 않는다.
+     둘을 나란히 두면 「오후 13:00」이 된다 (지침 ■9-2 ★★v12) */
+function 방문글(g){
+  var d=fmtDate(g('견적희망일'));
+  var t=hhmm(g('견적희망시각'));
+  var slot=String(g('견적희망시간대')||'').trim();
+  return [d, (t || slot)].filter(Boolean).join(' ');
 }
+
+function fmtStamp(v){
+  var s=String(v==null?'':v).replace(/\s+/g,' ').trim();
+  if(!s) return '';
+  var d=parseD(s);                       /* 날짜만 준다 */
+  if(!d) return s;
+  var ymd=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+  /* 시:분은 원문에서 뽑는다. 「오전/오후」가 붙어 있어도 24시간으로 돌린다 */
+  var m=s.match(/(오전|오후|AM|PM)?\s*(\d{1,2}):(\d{2})/i);
+  if(!m) return ymd;
+  var H=Number(m[2]), M=m[3];
+  var ap=String(m[1]||'').toUpperCase();
+  if((ap==='오후'||ap==='PM') && H<12) H+=12;
+  if((ap==='오전'||ap==='AM') && H===12) H=0;
+  if(H>23) return ymd;
+  return ymd+' '+('0'+H).slice(-2)+':'+M;
+}
+function fmtTime(v){ return hhmm(v); }    /* ★v70 「오후 1시」를 만들지 않는다 */
 
 /* 카드 렌더 */
 function renderQuote(){
@@ -2858,14 +2958,18 @@ function renderQuote(){
   var full = QUOTE.filter(function(r){
     var okWay = (FILTER==='all') || ((r._main||'기타')===FILTER);
     var okDet = (FILTER2==='all') || ((r._detail||'(미기재)')===FILTER2);
-    var okPer = (SEARCH || LISTMODE==='all') ? true : inPeriod(r);
+    /* ★v70 shot — 사진이 모자란 건만. 기간은 안 건다(놓치면 안 되는 건이다) */
+    if(!SEARCH && LISTMODE==='shot'){ var _s=shotOf(r); if(!(_s&&_s.short&&_s.st!=='대기')) return false; }
+    var okPer = (SEARCH || LISTMODE==='all' || LISTMODE==='shot') ? true : inPeriod(r);
     return okPer && okWay && okDet && matchSearch(r);
   });
   /* ★ 무엇을 보고 있는지 적는다 — 검색 중이면 전체에서 찾은 것 */
   var pn=periodNow().name;
   document.getElementById('quoteCnt').textContent =
     SEARCH ? ('전체에서 '+full.length+'건')
-           : (LISTMODE==='all' ? ('접수 전체 '+full.length+'건') : (pn+' '+full.length+'건'));
+           : (LISTMODE==='all'  ? ('접수 전체 '+full.length+'건')
+           :  LISTMODE==='shot' ? ('사진 덜 온 건 '+full.length+'건')          /* ★v70 */
+           :  (pn+' '+full.length+'건'));
   var tb=document.getElementById('cnt-quote');
   if(tb){ tb.textContent=full.length; tb.classList.toggle('hasnew', newCount()>0); }
 
@@ -2891,6 +2995,7 @@ function renderQuote(){
     h+='<span class="way" style="'+wayStyle(r._main)+'">'+esc(r._main||'경로미상')+'</span>';
     h+='<span class="mode'+(대면?'':' f')+'">'+esc(mode||'—')+'</span>';
     h+='<span class="tel">'+esc(g('연락처'))+'</span>';
+    h+=shotBadge(r);                                       /* ★v70 사진이 다 왔나 */
     h+='<span class="when">'+esc(fmtStamp(g('접수시각')))+'</span>';
     /* 같은 손님이 두 번 넣은 건 — 지우지 않고 알리기만 한다.
        사진을 나눠 보냈을 수 있으므로 대표가 보고 판단한다 */
@@ -2899,7 +3004,7 @@ function renderQuote(){
     h+='</div>';
 
     h+='<div class="move">이사 '+esc(fmtDate(g('이사예정일'))||'미정')+(g('날짜조절가능')==='예'?' (조절가능)':'')+(g('이사종류')?' · '+esc(g('이사종류')):'')+'</div>';
-    var 방문=[fmtDate(g('견적희망일')),g('견적희망시간대'),fmtTime(g('견적희망시각'))].filter(Boolean).join(' ');
+    var 방문=방문글(g);                                   /* ★v70 */
     if(방문) h+='<div class="route">방문 '+esc(방문)+(g('방문일시방식')?' <span class="cond">('+esc(g('방문일시방식'))+')</span>':'')+'</div>';
 
     h+='<div class="rows">';
@@ -2908,7 +3013,14 @@ function renderQuote(){
     if(g('도착지공실')) h+='<div class="kv"><span class="k">비는시기</span>'+esc(g('도착지공실'))+'</div>';
     if(g('붙박이장')) h+='<div class="kv"><span class="k">붙박이장</span>'+esc(g('붙박이장'))+'</div>';
     if(버릴) h+='<div class="kv"><span class="k">버릴것</span>'+esc(버릴)+'</div>';
-    if(g('사진요약')) h+='<div class="kv"><span class="k">사진</span>'+esc(g('사진요약'))+'</div>';
+    /* ★v70 고른 장수 옆에 「실제로 몇 장 도착했나」를 붙인다 */
+    var _sh=shotOf(r);
+    if(g('사진요약') || _sh){
+      h+='<div class="kv"><span class="k">사진</span>'+esc(g('사진요약')||'—');
+      if(_sh) h+=' <b style="color:'+(_sh.done?'var(--teal)':'var(--coral)')+'">· '
+                 +_sh.got+'/'+_sh.want+'장 도착'+(_sh.done?'':(_sh.st==='대기'?' (받는 중)':' ★'))+'</b>';
+      h+='</div>';
+    }
     h+='</div>';
 
     /* ★v2 소개자 줄 */
@@ -2959,7 +3071,7 @@ function buildLine(r){
   var L=[];
   var line=function(label,val){ if(val) L.push(label+': '+val); };
   var 대면=(g('견적방식')==='대면');
-  var 방문=[fmtDate(g('견적희망일')),g('견적희망시간대'),fmtTime(g('견적희망시각'))].filter(Boolean).join(' ');
+  var 방문=방문글(g);                                     /* ★v70 */
   if(대면&&방문) L.push('▶ 방문 '+방문+(g('방문일시방식')?' ('+g('방문일시방식')+')':''));
   L.push('▶ 이사 '+(fmtDate(g('이사예정일'))||'미정')+(g('날짜조절가능')==='예'?' (조절가능)':''));
   line('유입',r._main);
@@ -2996,7 +3108,7 @@ function buildDraft(r){
   L.push(' → '+g('도착지')+(g('도착지층')?' '+g('도착지층')+'층':'')+(g('도착지작업조건')?' ('+g('도착지작업조건')+')':''));
   L.push('');
   if(대면){
-    var when=[fmtDate(g('견적희망일')),g('견적희망시간대'),fmtTime(g('견적희망시각'))].filter(Boolean).join(' ');
+    var when=방문글(g);                                   /* ★v70 */
     if(when){ L.push('■ 방문견적 일시'); L.push(when); L.push(''); }
     L.push('■ 방문해서 짐량과 작업조건을 확인한 뒤');
     L.push('   확정가로 안내해 드립니다');
